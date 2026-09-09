@@ -1,0 +1,14 @@
+node_modules/
+dist/
+
+# env
+.env
+.env.local
+
+# real emails and anything derived from them
+fixtures/private/
+**/*.out.json
+
+# os / logs
+.DS_Store
+*.log

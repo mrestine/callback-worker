@@ -1,0 +1,30 @@
+{
+  "_note": "Hand-authored ideal extraction for agency-blind-forward.eml. Compare model output against this while tuning; it is not asserted automatically yet.",
+  "job_related": true,
+  "email_kind": "recruiter_outreach",
+  "sender": {
+    "name": "Priya Nandan",
+    "email": "priya.nandan@brightlinesearch.com",
+    "org": "Brightline Search",
+    "is_agency_recruiter": true,
+    "kind": "recruiter",
+    "confidence": 0.9
+  },
+  "hiring_company": {
+    "name": null,
+    "withheld": true,
+    "confidence": 0.85
+  },
+  "role": {
+    "title": "Senior Backend Engineer",
+    "confidence": 0.9
+  },
+  "event": {
+    "type": "email",
+    "subtype": null,
+    "occurred_at": null,
+    "summary": "Brightline Search pitched a fully remote Senior Backend Engineer role ($185-215k + equity, Go/Postgres) at an unnamed Series B fintech and asked for a 20-minute intro call."
+  },
+  "status_signal": null,
+  "notes": "Agency intro for a remote backend role; the employer has not been disclosed yet."
+}
