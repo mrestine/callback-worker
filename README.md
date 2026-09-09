@@ -56,8 +56,42 @@ The tuning loop: `npm run batch -- fixtures/private`, eyeball the
 `*.extract.out.json` files against your expectations, edit
 `prompts/extract.system.md` or `src/clean.ts`, repeat.
 
+## Stage 2 — container
+
+The worker runs as its own container. **Ollama runs separately** (its own
+container publishing `11434`, or on the host) — not in this compose.
+
+```sh
+cp .env.example .env
+# in .env, for the container on Docker Desktop:
+#   OLLAMA_URL=http://host.docker.internal:11434
+docker compose up --build
+```
+
+`src/main.ts` is a connectivity heartbeat for now — it logs whether Ollama is
+reachable and which models are pulled. `docker compose logs -f worker` should
+show something like:
+
+```
+callback-worker up · OLLAMA_URL=http://host.docker.internal:11434 · model=qwen2.5:7b-instruct
+[ollama] http://host.docker.internal:11434 ok · 2 model(s): qwen2.5:7b-instruct, llama3.1:8b-instruct
+```
+
+Run a CLI inside the container: `docker compose exec worker node dist/cli/batch.js fixtures/sample`
+(mount `./fixtures` first if you want your own).
+
+Reference Ollama container:
+
+```sh
+docker run -d --name ollama --gpus=all --restart unless-stopped \
+  -v ollama:/root/.ollama -p 11434:11434 ollama/ollama
+docker exec ollama ollama pull qwen2.5:7b-instruct
+```
+
+Image: `node:24-bookworm-slim`, multi-stage (compile → `dist/`, run `node dist/main.js`).
+No native deps, so the slim image needs nothing extra.
+
 ## Later stages (not built yet)
 
-2. containerise (`Dockerfile` + `docker-compose.yml`: ollama + worker on one network)
-3. `gmail.ts` (OAuth, poll, `format=raw`, label) + `store.ts` (local SQLite: cursor + outbox)
-4. `submit.ts` (outbox → `/api/ingest`) + `disambiguator.ts` + `loop.ts`
+3. `gmail.ts` (OAuth, poll, `format=raw`, label) + `store.ts` (`node:sqlite`: cursor + outbox)
+4. `submit.ts` (outbox → `/api/ingest`) + `disambiguator.ts` — replaces the heartbeat in `main.ts`

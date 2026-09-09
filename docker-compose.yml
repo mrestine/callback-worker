@@ -1,0 +1,15 @@
+# Runs the worker only. Ollama is expected to be running separately (a container
+# publishing 11434, or on the host). On Docker Desktop, host.docker.internal
+# reaches the host — set OLLAMA_URL=http://host.docker.internal:11434 in .env.
+services:
+  worker:
+    build: .
+    image: callback-worker
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - data:/app/data # local SQLite: Gmail cursor + outbox (Stage 3)
+      # - ./secrets:/app/secrets  # Gmail OAuth token (Stage 3) — `mkdir secrets` first
+
+volumes:
+  data:

@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.local
+fixtures
+secrets
+data
+*.log
+.DS_Store
+README.md

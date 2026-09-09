@@ -9,6 +9,9 @@
     "extract": "tsx src/cli/extract.ts",
     "pipe": "tsx src/cli/pipe.ts",
     "batch": "tsx src/cli/batch.ts",
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
