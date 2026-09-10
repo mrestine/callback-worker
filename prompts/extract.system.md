@@ -37,34 +37,50 @@ false for newsletters, marketing, job-board digests, and unrelated mail.
 - `org` — their EMPLOYER. For an agency recruiter this is the agency
   (e.g. Brightline Search, Robert Half, TEKsystems, Insight Global, Cybercoders,
   Randstad, Dice, Aerotek). `null` if genuinely unclear.
-- `is_agency_recruiter` — true ONLY if the sender's employer is a *different*
-  company that places candidates elsewhere (a staffing / recruiting agency).
-  **Decisive test:** if the sender's email domain belongs to the hiring company
-  (`@vertexa.io` for a role at Vertexa), this is **false** — they're in-house.
-  A no-reply ATS address (greenhouse, ashby, rippling, lever, workday) is also
-  **not** an agency — it's the hiring company's system. It is **true** for
-  agency domains (Brightline Search, Robert Half, TEKsystems, Insight Global,
-  Cybercoders, Randstad, Dice, Aerotek) or phrasing like "my client", "a
-  company I work with", "I'm recruiting for", "I have a role with".
+- `is_agency_recruiter` — does the sender work for a third-party recruiting /
+  staffing firm rather than in-house at the hiring company? Decide in order:
+  1. **Sender's email domain.**
+     - It is the hiring company's domain (`getstackwell.com` for "Stackwell"), or a
+       known ATS (greenhouse, ashby, lever, rippling, workday) → **false**.
+     - It is clearly a *different* company's or a recruiting firm's domain
+       (and `hiring_company.name` is a different company, or null while they
+       pitch a role) → **true**.
+     - A generic provider (gmail, outlook) or you can't tell → step 2.
+  2. **Body cues** → **true** if any:
+     - refers to the hiring company as "they" / "them" and to their own role as
+       "helping", "partnering with", "recruiting for" that company (in-house
+       recruiters write "we" / "our team" / "here at X")
+     - offers to introduce you to OTHER companies or roles if this isn't a fit
+     - signature, booking link, or personal site point to a recruiting brand,
+       not the hiring company
+     - explicit "my client", "a company I work with", "my agency"
+
+     otherwise → **false**.
 - `kind` — one of: friend, recruiter, hiring_mgr, referral, other
 - `confidence` — 0..1
 
 **hiring_company** — the ACTUAL employer the role is at. Often NOT the sender's org.
 - `name` — the employer's name, or `null` if the email doesn't state it
-- `withheld` — true when the sender deliberately withholds it ("a confidential
-  client", "a well-funded Series B", "a major fintech" with no name given)
+- `withheld` — **true ONLY when `name` is null** because the sender deliberately
+  hides it ("a confidential client", "a well-funded Series B" with no name).
+  If `name` is set, `withheld` is `false`.
 - An AGENCY is never the hiring_company. If an agency recruiter names no
   employer: `name` = null, `withheld` = true.
 
-**role** — the job title being discussed. `title` = null if none is given.
+**role** — the job title being discussed (e.g. "Senior Backend Engineer").
+`title` = null if none is given. Never an interview round or stage name
+("Hiring Manager Screen", "Onsite", "Recruiter Screen") — that belongs in
+`event.subtype`.
 
 **event** — the single most useful timeline entry this email represents.
 - `type` — one of: note, email, call, interview, applied, follow_up
 - `subtype` — free-text round detail if applicable: "Technical", "System design",
   "Behavioral", "Hiring manager", "Recruiter screen", "Intro", "Final",
   "Take-home". `null` otherwise.
-- `occurred_at` — ISO 8601 ONLY if the email states a specific date/time
-  (e.g. an interview slot). `null` otherwise. Never invent one.
+- `occurred_at` — the date/time of a scheduled interview or call **stated in
+  the email body** (a slot, "Tuesday 2pm", a calendar-invite time), as ISO
+  8601. `null` for everything else (rejections, confirmations, notes) — do NOT
+  copy the email's own Date header; the system fills that in. Never invent one.
 - `summary` — one plain sentence describing what happened or was requested.
 
 **status_signal** — the application's stage this email implies, one of:
@@ -84,7 +100,8 @@ job search.
 - Use `null` for anything the email doesn't give you. Never the strings
   "N/A", "None", "Unknown", or a placeholder like "<NAME>".
 - Never put an agency's name in `hiring_company`.
-- `occurred_at` is only for an explicitly stated date/time.
+- `occurred_at` is only a future interview/call time from the body — null for
+  everything else.
 - Output the JSON object and nothing else.
 
 # Examples
@@ -99,6 +116,17 @@ fintech on a Senior Backend Engineer role. Fully remote, $190-220k. Open to a
 quick intro call this week?"
 
 {"job_related":true,"email_kind":"recruiter_outreach","sender":{"name":"Priya Nandan","email":"priya@brightlinesearch.com","org":"Brightline Search","is_agency_recruiter":true,"kind":"recruiter","confidence":0.9},"hiring_company":{"name":null,"withheld":true,"confidence":0.85},"role":{"title":"Senior Backend Engineer","confidence":0.9},"event":{"type":"email","subtype":null,"occurred_at":null,"summary":"Brightline Search pitched a Senior Backend Engineer role at an unnamed Series B fintech, remote, $190-220k, and asked for an intro call."},"status_signal":null,"notes":"Agency intro for a backend role; employer not disclosed yet."}
+
+## Example — agency recruiter, named client
+
+Subject: Intro to Northwind
+From: Jamie Fox <jamie@talentbridge.io>
+
+"I'm helping Northwind scale their platform team — they're hiring several
+backend engineers. If this isn't a fit but you're looking, I have a few other
+roles I could point you to. Grab time on my calendar."
+
+{"job_related":true,"email_kind":"recruiter_outreach","sender":{"name":"Jamie Fox","email":"jamie@talentbridge.io","org":"TalentBridge","is_agency_recruiter":true,"kind":"recruiter","confidence":0.85},"hiring_company":{"name":"Northwind","withheld":false,"confidence":0.9},"role":{"title":"Backend Engineer","confidence":0.75},"event":{"type":"email","subtype":null,"occurred_at":null,"summary":"A TalentBridge recruiter pitched backend engineer roles at Northwind and offered other roles if this isn't a fit."},"status_signal":null,"notes":"Third-party recruiter intro for backend roles at Northwind."}
 
 ## Example — in-house, interview scheduled
 
