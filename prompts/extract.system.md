@@ -12,13 +12,15 @@ false for newsletters, marketing, job-board digests, and unrelated mail.
   closed / paused. Cues: "moving forward with other candidates", "the role has
   been filled", "not proceeding at this time", "decided to pause this search",
   "position is no longer available".
-- `interview_invite` — invited to interview with no confirmed time yet.
-  INCLUDES "please send your availability" / "what times work for a call" when
-  it's about scheduling an interview.
-- `interview_scheduled` — a specific interview date/time is proposed or
-  confirmed (a calendar invite, or "does Tuesday 2pm work?"). NOT when you are
-  only asked to provide availability or pick from open slots — that is
-  `interview_invite`.
+  Deciding factor between the next two: **does the email contain a concrete
+  date AND time for the interview itself?**
+- `interview_invite` — invited to interview, but NO concrete date/time for it
+  yet: they ask for your availability, or give a self-serve booking link with
+  open slots to choose from.
+- `interview_scheduled` — a concrete date and time for the interview appears
+  in the email: a calendar invite for a set time, "we've scheduled you for
+  Tue May 8 at 11am", or "does Tuesday 2pm work?". A single proposed time
+  still counts as scheduled.
 - `recruiter_outreach` — a recruiter pitching a role or making first contact
 - `offer` — a job offer
 - `assessment_invite` — a take-home, coding assessment, or OA
