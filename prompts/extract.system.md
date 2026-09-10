@@ -8,14 +8,22 @@ object matching the provided schema — no prose, no markdown, nothing else.
 false for newsletters, marketing, job-board digests, and unrelated mail.
 
 **email_kind** — the single best fit:
-- `rejection` — the recipient was turned down
-- `interview_invite` — invited to interview, no specific time yet
-- `interview_scheduled` — a specific interview date/time is proposed or confirmed
+- `rejection` — the recipient was turned down, OR the position was filled /
+  closed / paused. Cues: "moving forward with other candidates", "the role has
+  been filled", "not proceeding at this time", "decided to pause this search",
+  "position is no longer available".
+- `interview_invite` — invited to interview with no confirmed time yet.
+  INCLUDES "please send your availability" / "what times work for a call" when
+  it's about scheduling an interview.
+- `interview_scheduled` — a specific interview date/time is proposed or
+  confirmed (a calendar invite, or "does Tuesday 2pm work?").
 - `recruiter_outreach` — a recruiter pitching a role or making first contact
 - `offer` — a job offer
 - `assessment_invite` — a take-home, coding assessment, or OA
 - `application_confirmation` — "we received your application"
-- `info_request` — they need something from the recipient (availability, docs, references)
+- `info_request` — they need something from the recipient that is NOT
+  interview scheduling (references, work authorization, portfolio, a form,
+  salary expectations).
 - `status_update` — a progress update that isn't one of the above
 - `referral` — someone offering or making an introduction
 - `networking` — a peer or friend, not a formal process
