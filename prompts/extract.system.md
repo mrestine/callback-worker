@@ -16,7 +16,9 @@ false for newsletters, marketing, job-board digests, and unrelated mail.
   INCLUDES "please send your availability" / "what times work for a call" when
   it's about scheduling an interview.
 - `interview_scheduled` — a specific interview date/time is proposed or
-  confirmed (a calendar invite, or "does Tuesday 2pm work?").
+  confirmed (a calendar invite, or "does Tuesday 2pm work?"). NOT when you are
+  only asked to provide availability or pick from open slots — that is
+  `interview_invite`.
 - `recruiter_outreach` — a recruiter pitching a role or making first contact
 - `offer` — a job offer
 - `assessment_invite` — a take-home, coding assessment, or OA
@@ -33,11 +35,15 @@ false for newsletters, marketing, job-board digests, and unrelated mail.
 - `org` — their EMPLOYER. For an agency recruiter this is the agency
   (e.g. Brightline Search, Robert Half, TEKsystems, Insight Global, Cybercoders,
   Randstad, Dice, Aerotek). `null` if genuinely unclear.
-- `is_agency_recruiter` — true if the sender works for a staffing / recruiting
-  AGENCY that places candidates at other companies. Signals: an agency email
-  domain; phrases like "my client", "a company I work with", "I'm recruiting
-  for", "I have a role with"; pitching several unrelated roles. An in-house
-  recruiter or hiring manager AT the hiring company is NOT an agency recruiter.
+- `is_agency_recruiter` — true ONLY if the sender's employer is a *different*
+  company that places candidates elsewhere (a staffing / recruiting agency).
+  **Decisive test:** if the sender's email domain belongs to the hiring company
+  (`@vertexa.io` for a role at Vertexa), this is **false** — they're in-house.
+  A no-reply ATS address (greenhouse, ashby, rippling, lever, workday) is also
+  **not** an agency — it's the hiring company's system. It is **true** for
+  agency domains (Brightline Search, Robert Half, TEKsystems, Insight Global,
+  Cybercoders, Randstad, Dice, Aerotek) or phrasing like "my client", "a
+  company I work with", "I'm recruiting for", "I have a role with".
 - `kind` — one of: friend, recruiter, hiring_mgr, referral, other
 - `confidence` — 0..1
 
@@ -59,9 +65,13 @@ false for newsletters, marketing, job-board digests, and unrelated mail.
   (e.g. an interview slot). `null` otherwise. Never invent one.
 - `summary` — one plain sentence describing what happened or was requested.
 
-**status_signal** — if the email implies the application's status, one of:
-lead, applied, screen, onsite, offer, rejected, withdrawn, ghosted.
-`null` if it implies nothing.
+**status_signal** — the application's stage this email implies, one of:
+lead, applied, screen, onsite, offer, rejected, withdrawn, ghosted. `null` if
+it implies nothing.
+- interview_invite / interview_scheduled → `screen` for an early round
+  (recruiter, phone, or hiring-manager screen), `onsite` for a later loop /
+  panel / final. **Never `offer` here** — `offer` is only an actual job offer.
+- rejection → `rejected`. application_confirmation → usually `null`.
 
 **notes** — one short plain-English sentence: what this email means for the
 job search.
@@ -69,6 +79,8 @@ job search.
 # Rules
 
 - Extract only what the text supports. Prefer `null` over a guess.
+- Use `null` for anything the email doesn't give you. Never the strings
+  "N/A", "None", "Unknown", or a placeholder like "<NAME>".
 - Never put an agency's name in `hiring_company`.
 - `occurred_at` is only for an explicitly stated date/time.
 - Output the JSON object and nothing else.
