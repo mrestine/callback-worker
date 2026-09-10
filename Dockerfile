@@ -17,6 +17,6 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --from=build /app/dist ./dist
 COPY prompts ./prompts
-RUN mkdir -p /app/data /app/secrets
+RUN mkdir -p /app/secrets
 
 CMD ["node", "dist/main.js"]

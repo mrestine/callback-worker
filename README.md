@@ -2,17 +2,18 @@
 
 Email ingestion for [callback](https://github.com/mrestine/callback). Polls a
 Gmail label, cleans each message, extracts structure with a **local** model
-(Ollama), and submits the result to callback's `/api/ingest`.
+(Ollama), submits the result to callback's `/api/inbound`, and replies in the
+forwarded email's thread with a digest of what got queued.
 
 This repo owns *all* model interaction and every prompt. It never touches
 callback's database — the only coupling is one HTTP endpoint and a bearer token.
 See `../callback/PHASE-2-PLAN.md` for the full design.
 
-## Status: Stage 1 — the model-tuning harness
+## The model-tuning harness
 
 Two CLIs, no Gmail, no container, no callback API. They run against `.eml`
 fixtures and a local Ollama so you can iterate on the extraction prompt and the
-preprocessing until the output is good — *then* commit to a model.
+preprocessing until the output is good. (Model chosen: `qwen2.5:7b-instruct`.)
 
 ```
 preprocess   .eml / {raw} JSON  ──▶  normalized JSON   (deterministic; mailparser + unwrap-forward + strip-replies)
@@ -56,26 +57,11 @@ The tuning loop: `npm run batch -- fixtures/private`, eyeball the
 `*.extract.out.json` files against your expectations, edit
 `prompts/extract.system.md` or `src/clean.ts`, repeat.
 
-## Stage 2 — container
+## Container
 
 The worker runs as its own container. **Ollama runs separately** (its own
-container publishing `11434`, or on the host) — not in this compose.
-
-```sh
-cp .env.example .env
-# in .env, for the container on Docker Desktop:
-#   OLLAMA_URL=http://host.docker.internal:11434
-docker compose up --build
-```
-
-`src/main.ts` is a connectivity heartbeat for now — it logs whether Ollama is
-reachable and which models are pulled. `docker compose logs -f worker` should
-show something like:
-
-```
-callback-worker up · OLLAMA_URL=http://host.docker.internal:11434 · model=qwen2.5:7b-instruct
-[ollama] http://host.docker.internal:11434 ok · 2 model(s): qwen2.5:7b-instruct, llama3.1:8b
-```
+container publishing `11434`, or on the host) — not in this compose. On Docker
+Desktop set `OLLAMA_URL=http://host.docker.internal:11434` in `.env`.
 
 ### Tuning from another machine
 
@@ -105,7 +91,59 @@ docker exec ollama ollama pull qwen2.5:7b-instruct
 Image: `node:24-bookworm-slim`, multi-stage (compile → `dist/`, run `node dist/main.js`).
 No native deps, so the slim image needs nothing extra.
 
-## Later stages (not built yet)
+## Stage 3 / 4 — the live worker
 
-3. `gmail.ts` (OAuth, poll, `format=raw`, label) + `store.ts` (`node:sqlite`: cursor + outbox)
-4. `submit.ts` (outbox → `/api/ingest`) + `disambiguator.ts` — replaces the heartbeat in `main.ts`
+`src/main.ts` now runs the real loop:
+
+```
+poll Gmail by label  →  clean  →  extract (local model)  →  POST /api/inbound
+                     →  (disambiguate, a 2nd model call)  →  digest reply  →  relabel
+```
+
+**Gmail labels are the entire state machine** — no local DB, no cursor, no
+outbox:
+
+```
+callback/inbox  →  callback/processing  →  callback/processed | callback/error
+```
+
+`callback/inbox` is applied by a Gmail filter on the forwarding address; the
+worker owns the other three. Anything left in `callback/processing` (crash, lost
+response) is re-run next poll — `/api/inbound` dedups on `(source, external_ref)`
+so a re-send is a no-op.
+
+### One-time Gmail auth
+
+The worker needs an OAuth **desktop-app** client (see `PHASE-2-PLAN.md` §1a —
+publish the consent screen to *In production* so the refresh token never
+expires). Put the downloaded client secrets JSON at `secrets/gmail-credentials.json`,
+then, on a machine with a browser:
+
+```sh
+mkdir -p secrets   # drop gmail-credentials.json in here
+GMAIL_CREDENTIALS_PATH=./secrets/gmail-credentials.json \
+GMAIL_TOKEN_PATH=./secrets/gmail-token.json \
+npm run gmail:auth          # prints a URL — open it, approve, done
+```
+
+That writes `secrets/gmail-token.json` (an `authorized_user` refresh token).
+Both files are bind-mounted into the container via `./secrets:/app/secrets`.
+
+### Run
+
+```sh
+cp .env.example .env        # set CALLBACK_TOKEN (minted in the callback webapp), OLLAMA_URL
+docker compose up --build -d
+docker compose logs -f worker
+```
+
+`DRY_RUN=true` extracts and prints but never submits, relabels, or replies —
+useful for a first pass over a backlog.
+
+### Failure modes
+
+| what breaks | what happens |
+|---|---|
+| model returns invalid JSON | message → `callback/error`; strip the label to retry |
+| callback unreachable | message stays in `callback/processing`; retried next poll |
+| Gmail refresh token dead | loop logs `FATAL` and idles; re-run `gmail:auth`, restart. Set `HEALTHCHECK_URL` so a check service alerts you out-of-band. |
