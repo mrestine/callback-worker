@@ -28,7 +28,7 @@ grammar-constrained (the model cannot emit prose or invalid JSON).
 ```sh
 npm install
 cp .env.example .env          # OLLAMA_URL / OLLAMA_MODEL
-ollama pull qwen2.5:7b
+ollama pull qwen2.5:7b-instruct
 ```
 
 ## Getting fixtures
@@ -73,8 +73,8 @@ reachable and which models are pulled. `docker compose logs -f worker` should
 show something like:
 
 ```
-callback-worker up · OLLAMA_URL=http://host.docker.internal:11434 · model=qwen2.5:7b
-[ollama] http://host.docker.internal:11434 ok · 2 model(s): qwen2.5:7b, llama3.1:8b
+callback-worker up · OLLAMA_URL=http://host.docker.internal:11434 · model=qwen2.5:7b-instruct
+[ollama] http://host.docker.internal:11434 ok · 2 model(s): qwen2.5:7b-instruct, llama3.1:8b
 ```
 
 ### Tuning from another machine
@@ -99,7 +99,7 @@ Reference Ollama container:
 ```sh
 docker run -d --name ollama --gpus=all --restart unless-stopped \
   -v ollama:/root/.ollama -p 11434:11434 ollama/ollama
-docker exec ollama ollama pull qwen2.5:7b
+docker exec ollama ollama pull qwen2.5:7b-instruct
 ```
 
 Image: `node:24-bookworm-slim`, multi-stage (compile → `dist/`, run `node dist/main.js`).
