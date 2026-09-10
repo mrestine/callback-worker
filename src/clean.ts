@@ -21,13 +21,22 @@ function unquote(s: string): string {
   return s.replace(/^"(.*)"$/, '$1').trim()
 }
 
-/** "Name <email>" or bare "email" -> { name, email } (email lowercased). */
+/**
+ * "Name <email>" or bare "email" -> { name, email } (email lowercased).
+ * If the field lists several recipients ("<a>, <b>"), returns the first.
+ */
 export function parseAddress(text: string | undefined | null): { name: string; email: string } {
   if (!text) return { name: '', email: '' }
   const t = text.trim()
-  const withName = t.match(/^\s*(.*?)\s*<([^>]+)>\s*$/)
-  if (withName) return { name: unquote(withName[1]), email: withName[2].trim().toLowerCase() }
-  const bare = t.match(/[^\s<>@]+@[^\s<>@]+/)
+  // no end-anchor: match the FIRST "<...>" so multi-recipient fields yield [0]
+  const withName = t.match(/^\s*(.*?)\s*<([^>]+)>/)
+  if (withName) {
+    return {
+      name: unquote(withName[1]).replace(/[,;]\s*$/, '').trim(),
+      email: withName[2].trim().toLowerCase(),
+    }
+  }
+  const bare = t.match(/[^\s<>@,;]+@[^\s<>@,;]+/)
   if (!bare) return { name: t, email: '' }
   const name = bare[0] === t ? '' : t.replace(bare[0], '').replace(/[<>]/g, '').trim()
   return { name, email: bare[0].toLowerCase() }
@@ -62,25 +71,37 @@ function unwrapForward(body: string): { headers: FwdHeaders; body: string } | nu
   }
   if (at === -1) return null
 
+  // The reproduced-header block runs to the first blank line. A long
+  // Subject:/To: often wraps onto an unprefixed continuation line — append
+  // those to the previous header rather than treating them as body.
   const after = body.slice(at + len).replace(/^\s*\n/, '')
   const lines = after.split('\n')
   const headers: FwdHeaders = {}
+  let lastKey: keyof FwdHeaders | null = null
   let i = 0
-  for (; i < lines.length; i++) {
+  for (; i < lines.length && i < 15; i++) {
     if (lines[i].trim() === '') {
       i++
       break
     }
     const hm = lines[i].match(/^\s*(From|To|Subject|Date|Sent)\s*:\s*(.*)$/i)
-    if (!hm) break
-    const key = hm[1].toLowerCase()
-    const val = hm[2].trim()
-    if (key === 'from') headers.from = val
-    else if (key === 'to') headers.to = val
-    else if (key === 'subject') headers.subject = val
-    else if (key === 'date' || key === 'sent') headers.date = val
+    if (hm) {
+      const raw = hm[1].toLowerCase()
+      const key: keyof FwdHeaders = raw === 'sent' ? 'date' : (raw as keyof FwdHeaders)
+      headers[key] = hm[2].trim()
+      lastKey = key
+    } else if (lastKey) {
+      headers[lastKey] = `${headers[lastKey] ?? ''} ${lines[i].trim()}`.trim()
+    } else {
+      break // junk before any recognised header
+    }
   }
   return { headers, body: lines.slice(i).join('\n').trim() }
+}
+
+/** Google Calendar renders subjects as "Invitation: <title> @ <time> (TZ) (recipient@x)". */
+function trimCalendarCruft(subject: string): string {
+  return subject.replace(/\s*\([A-Z]{2,5}\)\s*\([^)]*@[^)]*\)\s*$/, '').trim()
 }
 
 const REPLY_BOUNDARIES = [
@@ -138,7 +159,7 @@ export async function clean(raw: Buffer | string): Promise<Normalized> {
   const rawBody = (parsed.text ?? '').trim() || htmlToText(parsed.html || '')
 
   const fwd = unwrapForward(rawBody)
-  const origSubject = (fwd?.headers.subject ?? parsed.subject ?? '').trim()
+  const origSubject = trimCalendarCruft((fwd?.headers.subject ?? parsed.subject ?? '').trim())
   const origFrom = parseAddress(fwd?.headers.from ?? addrText(parsed.from))
   const origTo = parseAddress(fwd?.headers.to ?? addrText(parsed.to))
 

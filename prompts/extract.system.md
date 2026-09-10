@@ -77,10 +77,11 @@ false for newsletters, marketing, job-board digests, and unrelated mail.
 - `subtype` — free-text round detail if applicable: "Technical", "System design",
   "Behavioral", "Hiring manager", "Recruiter screen", "Intro", "Final",
   "Take-home". `null` otherwise.
-- `occurred_at` — the date/time of a scheduled interview or call **stated in
-  the email body** (a slot, "Tuesday 2pm", a calendar-invite time), as ISO
-  8601. `null` for everything else (rejections, confirmations, notes) — do NOT
-  copy the email's own Date header; the system fills that in. Never invent one.
+- `occurred_at` — the date/time of a scheduled interview or call, taken from
+  the email's subject or body (a slot, "Tuesday 2pm", a calendar-invite time),
+  as ISO 8601. `null` for everything else (rejections, confirmations, notes) —
+  do NOT copy the email's own `Date:` header; the system fills that in. Never
+  invent one.
 - `summary` — one plain sentence describing what happened or was requested.
 
 **status_signal** — the application's stage this email implies, one of:
