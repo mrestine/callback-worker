@@ -28,7 +28,7 @@ grammar-constrained (the model cannot emit prose or invalid JSON).
 ```sh
 npm install
 cp .env.example .env          # OLLAMA_URL / OLLAMA_MODEL
-ollama pull qwen2.5:7b-instruct
+ollama pull qwen2.5:7b
 ```
 
 ## Getting fixtures
@@ -43,7 +43,7 @@ worker gets the same bytes from the Gmail API's `format=raw` response.
 npm run preprocess -- fixtures/sample/agency-blind-forward.eml     # normalized JSON
 npm run pipe       -- fixtures/private/some-real.eml               # normalized -> extraction, one shot
 npm run pipe       -- fixtures/private/some-real.eml --norm        # also print the normalized JSON (stderr)
-npm run pipe       -- fixtures/private/some-real.eml --model llama3.1:8b-instruct
+npm run pipe       -- fixtures/private/some-real.eml --model llama3.1:8b
 npm run extract    -- foo.norm.json --show-prompt                 # dump the exact prompt (stderr)
 npm run batch      -- fixtures/private                            # run everything; writes *.out.json beside each
 npm run typecheck
@@ -73,19 +73,33 @@ reachable and which models are pulled. `docker compose logs -f worker` should
 show something like:
 
 ```
-callback-worker up · OLLAMA_URL=http://host.docker.internal:11434 · model=qwen2.5:7b-instruct
-[ollama] http://host.docker.internal:11434 ok · 2 model(s): qwen2.5:7b-instruct, llama3.1:8b-instruct
+callback-worker up · OLLAMA_URL=http://host.docker.internal:11434 · model=qwen2.5:7b
+[ollama] http://host.docker.internal:11434 ok · 2 model(s): qwen2.5:7b, llama3.1:8b
 ```
 
-Run a CLI inside the container: `docker compose exec worker node dist/cli/batch.js fixtures/sample`
-(mount `./fixtures` first if you want your own).
+### Tuning from another machine
+
+`docker-compose.yml` bind-mounts `./fixtures` and `./prompts`, so you can drop
+`.eml` files and edit `prompts/extract.system.md` on the host and re-run without
+rebuilding. SSH into the desktop, then:
+
+```sh
+cd callback-worker
+docker exec -it callback-worker sh          # shell in the container
+# or run directly:
+docker exec callback-worker node dist/cli/batch.js fixtures/private
+docker exec callback-worker node dist/cli/batch.js fixtures/private --model llama3.1:8b
+```
+
+`*.out.json` results land in `./fixtures/private/` on the host (gitignored) —
+open them from the desktop or `scp` them off.
 
 Reference Ollama container:
 
 ```sh
 docker run -d --name ollama --gpus=all --restart unless-stopped \
   -v ollama:/root/.ollama -p 11434:11434 ollama/ollama
-docker exec ollama ollama pull qwen2.5:7b-instruct
+docker exec ollama ollama pull qwen2.5:7b
 ```
 
 Image: `node:24-bookworm-slim`, multi-stage (compile → `dist/`, run `node dist/main.js`).

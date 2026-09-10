@@ -5,8 +5,9 @@ dist/
 .env
 .env.local
 
-# real emails and anything derived from them
-fixtures/private/
+# real emails and anything derived from them (keep the dir so the bind mount works)
+fixtures/private/*
+!fixtures/private/.gitkeep
 **/*.out.json
 
 # os / logs
