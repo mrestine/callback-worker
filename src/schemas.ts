@@ -52,6 +52,9 @@ export const normalized = z.object({
   orig_subject: z.string(),
   orig_from: z.object({ name: z.string(), email: z.string() }),
   orig_to: z.object({ name: z.string(), email: z.string() }),
+  /** the envelope From — always the operator, since every message the worker
+   *  sees is a forward the operator sent (see PHASE-2-PLAN.md, "Intake model") */
+  envelope_from: z.object({ name: z.string(), email: z.string() }),
   /** ISO 8601, or null if unparseable */
   orig_date: z.string().nullable(),
   cleaned_body: z.string(),

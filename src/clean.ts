@@ -201,5 +201,6 @@ export async function clean(raw: Buffer | string): Promise<Normalized> {
     cleaned_body: body,
     unwrap_fallback: fwd === null,
     self_authored: selfAuthored,
+    envelope_from: envelopeFrom,
   })
 }

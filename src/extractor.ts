@@ -35,6 +35,30 @@ export async function buildPrompt(n: Normalized): Promise<{ system: string; user
   return { system: await readFile(SYSTEM_PROMPT_URL, 'utf8'), user: renderEmail(n) }
 }
 
+/**
+ * Deterministic backstop: every message the worker sees is a forward the
+ * operator sent (envelope_from), so the operator can never legitimately be
+ * the email's `sender` — a small model reading a self-authored forward
+ * (§clean.ts `self_authored`) sometimes attributes the quoted third party's
+ * role to the operator anyway. Rather than lean further on prompt wording,
+ * catch it here: if the model names the operator as sender, wipe just the
+ * identity fields so callback has nothing to key a contact on (it only
+ * proposes create_contact when sender.email || sender.name is non-empty) —
+ * hiring_company/role/event/notes/status_signal, which don't carry this
+ * mistake, are left as extracted.
+ */
+function guardOperatorIdentity(ex: Extraction, n: Normalized): Extraction {
+  const operatorEmail = n.envelope_from.email.toLowerCase()
+  if (!operatorEmail || ex.sender.email.toLowerCase() !== operatorEmail) return ex
+  console.warn(
+    `[extractor] model named the operator (${operatorEmail}) as sender — stripping identity fields`,
+  )
+  return {
+    ...ex,
+    sender: { name: '', email: '', org: null, is_agency_recruiter: false, kind: 'other', confidence: 0 },
+  }
+}
+
 export interface ExtractOutcome {
   ok: boolean
   extraction: Extraction | null
@@ -58,5 +82,5 @@ export async function runExtraction(n: Normalized, cfg: ModelConfig): Promise<Ex
       meta,
     }
   }
-  return { ok: true, extraction: parsed.data, raw, meta }
+  return { ok: true, extraction: guardOperatorIdentity(parsed.data, n), raw, meta }
 }
