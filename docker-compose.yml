@@ -9,12 +9,11 @@ services:
     env_file: .env
     restart: unless-stopped
     volumes:
-      - data:/app/data # local SQLite: Gmail cursor + outbox (Stage 3)
-      # - ./secrets:/app/secrets  # Gmail OAuth token (Stage 3) — `mkdir secrets` first
+      # Gmail OAuth client secrets + cached token. `mkdir secrets`, drop the
+      # client JSON in, then run `npm run gmail:auth` once. No other state —
+      # Gmail labels are the state machine.
+      - ./secrets:/app/secrets
 
       # --- tuning: live host files so you can iterate without rebuilding ---
       - ./fixtures:/app/fixtures # drop real .eml files in ./fixtures/private
-      - ./prompts:/app/prompts # edit extract.system.md on the host, re-run
-
-volumes:
-  data:
+      - ./prompts:/app/prompts # edit extract.system.md / disambiguate.system.md on the host

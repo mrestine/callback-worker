@@ -6,6 +6,9 @@ secrets/
 .env
 .env.local
 
+# Gmail OAuth client secrets + cached token (bind-mounted into the container)
+secrets/
+
 # real emails and anything derived from them (keep the dir so the bind mount works)
 fixtures/private/*
 !fixtures/private/.gitkeep
