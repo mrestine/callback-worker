@@ -57,6 +57,9 @@ export const normalized = z.object({
   cleaned_body: z.string(),
   /** true when no "Forwarded message" block was found and envelope headers were used */
   unwrap_fallback: z.boolean(),
+  /** true when the forward's From: is the operator's own address (they forwarded
+   *  their own sent reply, not an inbound email) — see clean.ts */
+  self_authored: z.boolean(),
 })
 export type Normalized = z.infer<typeof normalized>
 
