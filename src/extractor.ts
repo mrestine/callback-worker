@@ -14,14 +14,21 @@ export const extractionJsonSchema = zodToJsonSchema(extraction, {
 })
 
 export function renderEmail(n: Normalized): string {
-  return [
+  const lines = [
     `Subject: ${n.orig_subject || '(none)'}`,
     `From: ${n.orig_from.name} <${n.orig_from.email}>`,
     `To: ${n.orig_to.name} <${n.orig_to.email}>`,
     `Date: ${n.orig_date ?? '(unknown)'}`,
-    '',
-    n.cleaned_body || '(empty body)',
-  ].join('\n')
+  ]
+  if (n.self_authored) {
+    lines.push(
+      'Note: From: above is the operator\'s own address — this is the operator\'s own ' +
+        'reply, forwarded instead of the email it replies to. The real sender/company/role ' +
+        'is in the quoted original beneath the operator\'s note (a "On ... wrote:" block).',
+    )
+  }
+  lines.push('', n.cleaned_body || '(empty body)')
+  return lines.join('\n')
 }
 
 export async function buildPrompt(n: Normalized): Promise<{ system: string; user: string }> {

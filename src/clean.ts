@@ -157,11 +157,19 @@ function htmlToText(html: string): string {
 export async function clean(raw: Buffer | string): Promise<Normalized> {
   const parsed = await simpleParser(raw)
   const rawBody = (parsed.text ?? '').trim() || htmlToText(parsed.html || '')
+  const envelopeFrom = parseAddress(addrText(parsed.from))
 
   const fwd = unwrapForward(rawBody)
   const origSubject = trimCalendarCruft((fwd?.headers.subject ?? parsed.subject ?? '').trim())
   const origFrom = parseAddress(fwd?.headers.from ?? addrText(parsed.from))
   const origTo = parseAddress(fwd?.headers.to ?? addrText(parsed.to))
+
+  // The operator forwarded their OWN sent reply, not an inbound email (e.g. they
+  // replied to a recruiter mid-conversation, then forwarded that reply instead
+  // of the recruiter's original). The "Forwarded message" block's From: is then
+  // the operator's own address, not a third party's.
+  const selfAuthored =
+    fwd !== null && origFrom.email !== '' && origFrom.email.toLowerCase() === envelopeFrom.email.toLowerCase()
 
   let origDate: string | null = null
   const dateSrc = fwd?.headers.date
@@ -174,7 +182,12 @@ export async function clean(raw: Buffer | string): Promise<Normalized> {
   }
 
   let body = fwd?.body ?? rawBody
-  body = stripReplies(body)
+  // On a self-authored forward, the real content (the recruiter's original
+  // email) is exactly what a normal reply chain would cut as "quoted noise" —
+  // it's quoted below the operator's own short note, not disclaimer junk. Keep
+  // it; the model is told (via the prompt note) to read past the operator's own
+  // reply for the actual sender/company/role.
+  if (!selfAuthored) body = stripReplies(body)
   body = stripSignature(body)
   body = body.replace(/\n{3,}/g, '\n\n').trim().slice(0, MAX_BODY)
 
@@ -187,5 +200,6 @@ export async function clean(raw: Buffer | string): Promise<Normalized> {
     orig_date: origDate,
     cleaned_body: body,
     unwrap_fallback: fwd === null,
+    self_authored: selfAuthored,
   })
 }
