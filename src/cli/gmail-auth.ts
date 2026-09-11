@@ -2,9 +2,12 @@
  * One-time Gmail OAuth bootstrap. Run on a machine with a browser (RDP into the
  * box is fine — the URL is printed for you to paste):
  *
- *   GMAIL_CREDENTIALS_PATH=./secrets/gmail-credentials.json \
- *   GMAIL_TOKEN_PATH=./secrets/gmail-token.json \
+ *   mkdir secrets            # drop gmail-credentials.json in here
  *   npm run gmail:auth
+ *
+ * No shell-specific env-var syntax needed — reads GMAIL_CREDENTIALS_PATH /
+ * GMAIL_TOKEN_PATH from .env if set, else defaults to ./secrets/gmail-*.json
+ * (host-relative; this always runs outside the container).
  *
  * Writes an `authorized_user` token file the worker reads. Uses
  * access_type=offline + prompt=consent so a refresh token is always issued.
@@ -14,7 +17,10 @@
 import { createServer } from 'node:http'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { config } from 'dotenv'
 import { OAuth2Client } from 'google-auth-library'
+
+config({ path: ['.env', '.env.local'], quiet: true })
 
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
@@ -22,17 +28,19 @@ const SCOPES = [
 ]
 const PORT = 4179 // loopback; Desktop-type OAuth clients accept any localhost port
 
-const credPath = process.env.GMAIL_CREDENTIALS_PATH
-const tokenPath = process.env.GMAIL_TOKEN_PATH
-if (!credPath || !tokenPath) {
-  console.error('Set GMAIL_CREDENTIALS_PATH and GMAIL_TOKEN_PATH (see .env.example).')
+const credPath = process.env.GMAIL_CREDENTIALS_PATH || './secrets/gmail-credentials.json'
+const tokenPath = process.env.GMAIL_TOKEN_PATH || './secrets/gmail-token.json'
+
+let credRaw: string
+try {
+  credRaw = await readFile(credPath, 'utf8')
+} catch {
+  console.error(`No client secrets file at ${credPath}.`)
+  console.error('Download it from Google Cloud Console (a Desktop-app OAuth client) and put it there,')
+  console.error('or set GMAIL_CREDENTIALS_PATH in .env to point at it.')
   process.exit(1)
 }
-
-const raw = JSON.parse(await readFile(credPath, 'utf8')) as Record<
-  string,
-  { client_id: string; client_secret: string }
->
+const raw = JSON.parse(credRaw) as Record<string, { client_id: string; client_secret: string }>
 const secrets = raw.installed ?? raw.web
 if (!secrets?.client_id || !secrets?.client_secret) {
   console.error(`${credPath} is not an OAuth client secrets file (no "installed"/"web" section).`)
