@@ -69,6 +69,18 @@ export type Normalized = z.infer<typeof normalized>
 // --- Extraction: model output ------------------------------------
 const confidence = z.number().min(0).max(1)
 
+const hiringCompany = z.object({
+  /** the ACTUAL employer, or null */
+  name: z.string().nullable(),
+  /** true = a blind/confidential submission — employer deliberately not named */
+  withheld: z.boolean(),
+  confidence,
+})
+const role = z.object({
+  title: z.string().nullable(),
+  confidence,
+})
+
 export const extraction = z
   .object({
     job_related: z.boolean(),
@@ -82,17 +94,13 @@ export const extraction = z
       kind: z.enum(CONTACT_KINDS),
       confidence,
     }),
-    hiring_company: z.object({
-      /** the ACTUAL employer, or null */
-      name: z.string().nullable(),
-      /** true = a blind/confidential submission — employer deliberately not named */
-      withheld: z.boolean(),
-      confidence,
-    }),
-    role: z.object({
-      title: z.string().nullable(),
-      confidence,
-    }),
+    hiring_company: hiringCompany,
+    role,
+    /** rare: more than one distinct role/company the person has explicitly
+     *  decided to move forward on in ONE email (e.g. an agency sent several
+     *  JDs and they replied naming which to pursue). `hiring_company`/`role`
+     *  above always cover the first one; this holds the rest. `[]` normally. */
+    additional_opportunities: z.array(z.object({ hiring_company: hiringCompany, role })),
     event: z.object({
       type: z.enum(MANUAL_EVENT_TYPES),
       /** free-text round detail, e.g. "Technical", "Hiring manager"; null if n/a */

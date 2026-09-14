@@ -71,6 +71,13 @@ export function renderDigest(
   if (ex.role.title) L.push(`  • role:    ${ex.role.title}`)
   const sender = ex.sender.name || ex.sender.email
   if (sender) L.push(`  • sender:  ${sender}${ex.sender.is_agency_recruiter ? ' (agency recruiter)' : ''}`)
+  if (ex.additional_opportunities.length > 0) {
+    L.push(`  • + ${ex.additional_opportunities.length} more:`)
+    for (const o of ex.additional_opportunities) {
+      const c = o.hiring_company.withheld ? '(withheld)' : o.hiring_company.name
+      L.push(`      ${o.role.title || '(role not stated)'}${c ? ` @ ${c}` : ''}`)
+    }
+  }
   L.push('')
 
   const ops = (resp.proposal ?? []).filter((o) => o.decision !== 'skip')

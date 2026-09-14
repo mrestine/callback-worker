@@ -70,6 +70,13 @@ is stated. Never an interview round name ("Hiring Manager Screen", "Onsite").
 otherwise — never the email's own `Date:` header, never invented.
 **event.summary** — one plain sentence describing what happened or was asked.
 
+**additional_opportunities** — almost always `[]`. Only add entries when the
+person has explicitly decided to move forward on MORE THAN ONE distinct
+role/company in this one email (e.g. an agency sent several JDs and they
+replied naming which ones to pursue) — not just because several companies are
+mentioned. `hiring_company`/`role` above are always the first one; put the
+rest here, same fields each.
+
 **status_signal** — lead | applied | screen | onsite | offer | rejected |
 withdrawn | ghosted, or `null`. Interview email → `screen` (early round) or
 `onsite` (later loop); **never `offer`**. Rejection → `rejected`.
@@ -97,7 +104,7 @@ From: Priya Nandan <priya@brightlinesearch.com>
 fintech on a Senior Backend Engineer role, fully remote, $190-220k. If it's not
 a fit I have other roles too. Open to a quick call?"
 
-{"job_related":true,"email_kind":"recruiter_outreach","sender":{"name":"Priya Nandan","email":"priya@brightlinesearch.com","org":"Brightline Search","is_agency_recruiter":true,"kind":"recruiter","confidence":0.9},"hiring_company":{"name":null,"withheld":true,"confidence":0.85},"role":{"title":"Senior Backend Engineer","confidence":0.9},"event":{"type":"email","subtype":null,"occurred_at":null,"summary":"Brightline Search pitched a remote Senior Backend Engineer role at an unnamed Series B fintech and asked for a call."},"status_signal":null,"notes":"Agency intro for a backend role; employer not disclosed."}
+{"job_related":true,"email_kind":"recruiter_outreach","sender":{"name":"Priya Nandan","email":"priya@brightlinesearch.com","org":"Brightline Search","is_agency_recruiter":true,"kind":"recruiter","confidence":0.9},"hiring_company":{"name":null,"withheld":true,"confidence":0.85},"role":{"title":"Senior Backend Engineer","confidence":0.9},"additional_opportunities":[],"event":{"type":"email","subtype":null,"occurred_at":null,"summary":"Brightline Search pitched a remote Senior Backend Engineer role at an unnamed Series B fintech and asked for a call."},"status_signal":null,"notes":"Agency intro for a backend role; employer not disclosed."}
 
 ## Calendar invite — interview scheduled
 
@@ -107,7 +114,7 @@ From: Casey Lin <casey.lin@ridgeline.com>
 "Your interview is scheduled for Mon, May 11, 2026 at 11:00 AM EDT. This is a
 30-minute recruiter screen over Zoom. To reschedule, use this link."
 
-{"job_related":true,"email_kind":"interview_scheduled","sender":{"name":"Casey Lin","email":"casey.lin@ridgeline.com","org":"Ridgeline","is_agency_recruiter":false,"kind":"recruiter","confidence":0.9},"hiring_company":{"name":"Ridgeline","withheld":false,"confidence":0.9},"role":{"title":null,"confidence":0.3},"event":{"type":"interview","subtype":"Recruiter screen","occurred_at":"2026-05-11T11:00:00-04:00","summary":"Recruiter screen scheduled for Mon May 11 at 11:00 AM EDT over Zoom."},"status_signal":"screen","notes":"Ridgeline scheduled a recruiter screen."}
+{"job_related":true,"email_kind":"interview_scheduled","sender":{"name":"Casey Lin","email":"casey.lin@ridgeline.com","org":"Ridgeline","is_agency_recruiter":false,"kind":"recruiter","confidence":0.9},"hiring_company":{"name":"Ridgeline","withheld":false,"confidence":0.9},"role":{"title":null,"confidence":0.3},"additional_opportunities":[],"event":{"type":"interview","subtype":"Recruiter screen","occurred_at":"2026-05-11T11:00:00-04:00","summary":"Recruiter screen scheduled for Mon May 11 at 11:00 AM EDT over Zoom."},"status_signal":"screen","notes":"Ridgeline scheduled a recruiter screen."}
 
 ## Rejection
 
@@ -117,4 +124,27 @@ From: recruiting@acme.io
 "After careful consideration we've decided not to move forward with your
 application for the Platform Engineer role."
 
-{"job_related":true,"email_kind":"rejection","sender":{"name":"","email":"recruiting@acme.io","org":"Acme","is_agency_recruiter":false,"kind":"recruiter","confidence":0.6},"hiring_company":{"name":"Acme","withheld":false,"confidence":0.8},"role":{"title":"Platform Engineer","confidence":0.85},"event":{"type":"email","subtype":null,"occurred_at":null,"summary":"Acme rejected the application for the Platform Engineer role."},"status_signal":"rejected","notes":"Acme passed on the Platform Engineer application."}
+{"job_related":true,"email_kind":"rejection","sender":{"name":"","email":"recruiting@acme.io","org":"Acme","is_agency_recruiter":false,"kind":"recruiter","confidence":0.6},"hiring_company":{"name":"Acme","withheld":false,"confidence":0.8},"role":{"title":"Platform Engineer","confidence":0.85},"additional_opportunities":[],"event":{"type":"email","subtype":null,"occurred_at":null,"summary":"Acme rejected the application for the Platform Engineer role."},"status_signal":"rejected","notes":"Acme passed on the Platform Engineer application."}
+
+## Deciding to pursue several of several JDs (self-authored forward)
+
+Note: From: above is the operator's own address — this is the operator's own
+reply, forwarded instead of the email it replies to. The real sender/company/role
+is in the quoted original beneath the operator's note (a "On ... wrote:" block).
+
+"Let's go for Fernbridge and Ridgeline, and also put me in for Stackwell. Skip the
+Pulsecheck one for now."
+
+On Thu, Sep 10, 2026 at 2:14 PM Owen Castillo <owen.castillo@brightlinesearch.com> wrote:
+> Hey Matt, attached the 4 JDs we discussed: Senior Platform Engineer @ Fernbridge,
+> Staff Backend Engineer @ Ridgeline, Platform Engineer @ Stackwell, and SRE @
+> Pulsecheck. Let me know which ones you want to move on.
+
+{"job_related":true,"email_kind":"recruiter_outreach","sender":{"name":"Owen Castillo","email":"owen.castillo@brightlinesearch.com","org":"Brightline Search","is_agency_recruiter":true,"kind":"recruiter","confidence":0.85},"hiring_company":{"name":"Fernbridge","withheld":false,"confidence":0.8},"role":{"title":"Senior Platform Engineer","confidence":0.8},"additional_opportunities":[{"hiring_company":{"name":"Ridgeline","withheld":false,"confidence":0.8},"role":{"title":"Staff Backend Engineer","confidence":0.8}},{"hiring_company":{"name":"Stackwell","withheld":false,"confidence":0.8},"role":{"title":"Platform Engineer","confidence":0.8}}],"event":{"type":"email","subtype":null,"occurred_at":null,"summary":"Matt decided to move forward on the Fernbridge, Ridgeline, and Stackwell roles Brightline Search sent over, skipping the Pulsecheck SRE role."},"status_signal":null,"notes":"Pursuing 3 of the 4 roles Brightline Search sent; passing on Pulsecheck."}
+
+`status_signal` stays `null` here (not `"applied"`) — a go-ahead to a recruiter
+is a decision to pursue, not confirmation of a filed application; each becomes
+a `lead`.
+
+Note Pulsecheck is excluded entirely — it was offered but not chosen, so it
+appears nowhere in the output, not even as a skipped entry.
