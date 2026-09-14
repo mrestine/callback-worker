@@ -55,7 +55,10 @@ the quoted email doesn't. Use that note for `status_signal` / `notes` too (e.g.
 "let's go for it" → `status_signal: "applied"`).
 
 **hiring_company.name** — the actual employer, or `null` if unstated. An agency
-is never the hiring_company.
+is never the hiring_company — but if `sender.is_agency_recruiter` is `false`,
+`sender.org` (their own employer) and `hiring_company` are the same company;
+copy it over, don't leave `hiring_company` null just because `sender.org` is
+already filled in.
 
 **hiring_company.withheld** — true ONLY when `name` is null because the sender
 hides it on purpose ("a confidential client"). If `name` is set → `false`.

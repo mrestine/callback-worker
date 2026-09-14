@@ -66,15 +66,20 @@ function guardOperatorIdentity(ex: Extraction, n: Normalized): Extraction {
  * prompt) doesn't always hold on a 7b model, especially once an email
  * discusses several opportunities at once — one slot ends up holding the
  * agency's own name instead of a real employer. Drop any opportunity whose
- * hiring_company.name matches the sender's own org — checked against `org`
- * alone, NOT gated on `is_agency_recruiter`: the exact run where the model
- * mixes up identity (guardOperatorIdentity above) is also the run where it's
- * least reliable about the is_agency_recruiter flag, so requiring it true
- * would skip this guard precisely when it's needed most.
+ * hiring_company.name matches the sender's own org.
+ *
+ * Gated on `is_agency_recruiter` — UNLESS guardOperatorIdentity just wiped
+ * sender identity (name and email both blanked), in which case
+ * is_agency_recruiter isn't trustworthy either and the gate is skipped. Without
+ * that exception this guard would also fire whenever a non-agency sender's
+ * org and hiring_company are legitimately the same company (an ATS
+ * confirmation email, say) — a real case, not a bug, that guardMissingHiringCompany
+ * below only accidentally un-breaks by re-copying org back into hiring_company.
  */
 function guardAgencyAsHiringCompany(ex: Extraction): Extraction {
   const org = ex.sender.org?.trim().toLowerCase()
-  if (!org) return ex
+  const identityWiped = !ex.sender.name && !ex.sender.email
+  if (!org || (!identityWiped && !ex.sender.is_agency_recruiter)) return ex
 
   const scrub = (hc: Extraction['hiring_company']): Extraction['hiring_company'] =>
     hc.name?.trim().toLowerCase() === org ? { name: null, withheld: true, confidence: hc.confidence } : hc
@@ -89,6 +94,27 @@ function guardAgencyAsHiringCompany(ex: Extraction): Extraction {
   }
   console.warn(`[extractor] model named the agency itself (${ex.sender.org}) as a hiring_company — dropped`)
   return { ...ex, hiring_company, additional_opportunities }
+}
+
+/**
+ * Deterministic backstop: for a non-agency sender, `sender.org` (the sender's
+ * own employer) and `hiring_company` (the actual employer) are, by definition,
+ * the same entity — an ATS/in-house confirmation email is never legitimately
+ * "withheld." qwen reliably extracts the company into `sender.org` on these
+ * (application_confirmation from Greenhouse/Ashby/etc. no-reply addresses)
+ * but then separately, incorrectly, leaves `hiring_company` null/withheld —
+ * observed on 4 of 5 real submissions in one batch, every one of which had
+ * `sender.org` populated (the 2 that got hiring_company right both had
+ * `sender.org: null`, so the model isn't just guessing — it seems to read a
+ * filled `sender.org` as "already covered, leave hiring_company alone").
+ * Never fires for an agency: there, sender.org is the agency, not the
+ * employer, and guardAgencyAsHiringCompany already keeps them apart.
+ */
+function guardMissingHiringCompany(ex: Extraction): Extraction {
+  const org = ex.sender.org?.trim()
+  if (ex.sender.is_agency_recruiter || !org || ex.hiring_company.name) return ex
+  console.warn(`[extractor] hiring_company left null/withheld despite sender.org (${org}) — backfilled`)
+  return { ...ex, hiring_company: { name: org, withheld: false, confidence: ex.sender.confidence } }
 }
 
 export interface ExtractOutcome {
@@ -117,6 +143,6 @@ export async function runExtraction(n: Normalized, cfg: ModelConfig): Promise<Ex
       prompt,
     }
   }
-  const guarded = guardAgencyAsHiringCompany(guardOperatorIdentity(parsed.data, n))
+  const guarded = guardMissingHiringCompany(guardAgencyAsHiringCompany(guardOperatorIdentity(parsed.data, n)))
   return { ok: true, extraction: guarded, raw, meta, prompt }
 }
