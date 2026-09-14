@@ -36,6 +36,22 @@ export async function buildPrompt(n: Normalized): Promise<{ system: string; user
 }
 
 /**
+ * Deterministic cleanup: the model occasionally copies a raw "<email>"
+ * header token straight into sender.name/sender.email instead of the bare
+ * address — breaks the no-reply skip check (NO_REPLY in callback's
+ * proposeOps expects a bare address at the start of the string) and would
+ * create an ugly "<no-reply@...>"-named contact. Runs first, before any
+ * other guard compares sender.email against something else.
+ */
+function guardBracketedSenderFields(ex: Extraction): Extraction {
+  const unwrap = (s: string) => s.trim().replace(/^<(.+)>$/, '$1')
+  const name = unwrap(ex.sender.name)
+  const email = unwrap(ex.sender.email)
+  if (name === ex.sender.name && email === ex.sender.email) return ex
+  return { ...ex, sender: { ...ex.sender, name, email } }
+}
+
+/**
  * Deterministic backstop: every message the worker sees is a forward the
  * operator sent (envelope_from), so the operator can never legitimately be
  * the email's `sender` — a small model reading a self-authored forward
@@ -143,6 +159,8 @@ export async function runExtraction(n: Normalized, cfg: ModelConfig): Promise<Ex
       prompt,
     }
   }
-  const guarded = guardMissingHiringCompany(guardAgencyAsHiringCompany(guardOperatorIdentity(parsed.data, n)))
+  const guarded = guardMissingHiringCompany(
+    guardAgencyAsHiringCompany(guardOperatorIdentity(guardBracketedSenderFields(parsed.data), n)),
+  )
   return { ok: true, extraction: guarded, raw, meta, prompt }
 }
