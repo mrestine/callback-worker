@@ -17,3 +17,8 @@ services:
       # --- tuning: live host files so you can iterate without rebuilding ---
       - ./fixtures:/app/fixtures # drop real .eml files in ./fixtures/private
       - ./prompts:/app/prompts # edit extract.system.md / disambiguate.system.md on the host
+
+      # every extraction's exact model input/output — <ts>-<other-email>.cleaned.json
+      # (normalized + prompt) and .processed.json (raw + parsed extraction), so a bad
+      # extraction can be diagnosed from the host without guessing what the model saw.
+      - ./debug:/app/debug

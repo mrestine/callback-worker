@@ -42,10 +42,15 @@ export async function buildPrompt(n: Normalized): Promise<{ system: string; user
  * (§clean.ts `self_authored`) sometimes attributes the quoted third party's
  * role to the operator anyway. Rather than lean further on prompt wording,
  * catch it here: if the model names the operator as sender, wipe just the
- * identity fields so callback has nothing to key a contact on (it only
- * proposes create_contact when sender.email || sender.name is non-empty) —
- * hiring_company/role/event/notes/status_signal, which don't carry this
- * mistake, are left as extracted.
+ * name/email/kind — the fields that actually assert "this specific person is
+ * the sender" — so callback has nothing to key a contact on (it only proposes
+ * create_contact when sender.email || sender.name is non-empty). `org` and
+ * `is_agency_recruiter` are a classification the model can still have read
+ * correctly from context even while botching whose address is whose (an
+ * earlier version of this guard zeroed those too, which silently defeated the
+ * "an agency is never the hiring_company" rule downstream — see
+ * guardAgencyAsHiringCompany). hiring_company/role/event/notes/status_signal
+ * don't carry this mistake at all and are left as extracted.
  */
 function guardOperatorIdentity(ex: Extraction, n: Normalized): Extraction {
   const operatorEmail = n.envelope_from.email.toLowerCase()
@@ -53,10 +58,37 @@ function guardOperatorIdentity(ex: Extraction, n: Normalized): Extraction {
   console.warn(
     `[extractor] model named the operator (${operatorEmail}) as sender — stripping identity fields`,
   )
-  return {
-    ...ex,
-    sender: { name: '', email: '', org: null, is_agency_recruiter: false, kind: 'other', confidence: 0 },
+  return { ...ex, sender: { ...ex.sender, name: '', email: '', kind: 'other' } }
+}
+
+/**
+ * Deterministic backstop: "an agency is never the hiring_company" (per the
+ * prompt) doesn't always hold on a 7b model, especially once an email
+ * discusses several opportunities at once — one slot ends up holding the
+ * agency's own name instead of a real employer. Drop any opportunity whose
+ * hiring_company.name matches the sender's own org — checked against `org`
+ * alone, NOT gated on `is_agency_recruiter`: the exact run where the model
+ * mixes up identity (guardOperatorIdentity above) is also the run where it's
+ * least reliable about the is_agency_recruiter flag, so requiring it true
+ * would skip this guard precisely when it's needed most.
+ */
+function guardAgencyAsHiringCompany(ex: Extraction): Extraction {
+  const org = ex.sender.org?.trim().toLowerCase()
+  if (!org) return ex
+
+  const scrub = (hc: Extraction['hiring_company']): Extraction['hiring_company'] =>
+    hc.name?.trim().toLowerCase() === org ? { name: null, withheld: true, confidence: hc.confidence } : hc
+
+  const hiring_company = scrub(ex.hiring_company)
+  const additional_opportunities = ex.additional_opportunities.map((o) => ({
+    ...o,
+    hiring_company: scrub(o.hiring_company),
+  }))
+  if (hiring_company === ex.hiring_company && additional_opportunities.every((o, i) => o === ex.additional_opportunities[i])) {
+    return ex
   }
+  console.warn(`[extractor] model named the agency itself (${ex.sender.org}) as a hiring_company — dropped`)
+  return { ...ex, hiring_company, additional_opportunities }
 }
 
 export interface ExtractOutcome {
@@ -65,11 +97,13 @@ export interface ExtractOutcome {
   raw: string
   issues?: string
   meta: ChatResult['meta']
+  /** the exact system/user text sent to the model — for debuglog.ts */
+  prompt: { system: string; user: string }
 }
 
 export async function runExtraction(n: Normalized, cfg: ModelConfig): Promise<ExtractOutcome> {
-  const { system, user } = await buildPrompt(n)
-  const { raw, json, meta } = await chatJson(cfg, system, user, extractionJsonSchema)
+  const prompt = await buildPrompt(n)
+  const { raw, json, meta } = await chatJson(cfg, prompt.system, prompt.user, extractionJsonSchema)
   const parsed = extraction.safeParse(json)
   if (!parsed.success) {
     return {
@@ -80,7 +114,9 @@ export async function runExtraction(n: Normalized, cfg: ModelConfig): Promise<Ex
         .map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`)
         .join('\n'),
       meta,
+      prompt,
     }
   }
-  return { ok: true, extraction: guardOperatorIdentity(parsed.data, n), raw, meta }
+  const guarded = guardAgencyAsHiringCompany(guardOperatorIdentity(parsed.data, n))
+  return { ok: true, extraction: guarded, raw, meta, prompt }
 }

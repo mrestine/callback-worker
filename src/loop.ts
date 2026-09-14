@@ -11,6 +11,7 @@
 import type { OAuth2Client } from 'google-auth-library'
 import { clean } from './clean.js'
 import { runExtraction } from './extractor.js'
+import { writeDebugLog } from './debuglog.js'
 import type { ModelConfig } from './model.js'
 import type { Normalized, Extraction } from './schemas.js'
 import {
@@ -79,6 +80,7 @@ export async function runCycle(c: LoopConfig): Promise<{ processed: number; erro
       const msg = await getMessage(c.auth, id)
       const n = await clean(msg.raw)
       const outcome = await runExtraction(n, c.model)
+      await writeDebugLog(n, outcome)
 
       if (!outcome.ok || !outcome.extraction) {
         console.error(`[loop] ${id} extraction FAILED: ${outcome.issues ?? 'no JSON'}`)

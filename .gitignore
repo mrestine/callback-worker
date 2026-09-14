@@ -13,6 +13,10 @@ fixtures/private/*
 !fixtures/private/.gitkeep
 **/*.out.json
 
+# per-message model I/O debug logs (real email content) — keep the dir so the bind mount works
+debug/*
+!debug/.gitkeep
+
 # os / logs
 .DS_Store
 *.log
