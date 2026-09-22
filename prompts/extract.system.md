@@ -136,15 +136,15 @@ Note: From: above is the operator's own address — this is the operator's own
 reply, forwarded instead of the email it replies to. The real sender/company/role
 is in the quoted original beneath the operator's note (a "On ... wrote:" block).
 
-"Let's go for Fernbridge and Ridgeline, and also put me in for Stackwell. Skip the
-Pulsecheck one for now."
+"Let's go for Fernbridge and Ridgeline, and also put me in for Stackwell. Skip
+the Pulsecheck one for now."
 
 On Thu, Sep 10, 2026 at 2:14 PM Owen Castillo <owen.castillo@brightlinesearch.com> wrote:
-> Hey Matt, attached the 4 JDs we discussed: Senior Platform Engineer @ Fernbridge,
+> Hey Jordan, attached the 4 JDs we discussed: Senior Platform Engineer @ Fernbridge,
 > Staff Backend Engineer @ Ridgeline, Platform Engineer @ Stackwell, and SRE @
 > Pulsecheck. Let me know which ones you want to move on.
 
-{"job_related":true,"email_kind":"recruiter_outreach","sender":{"name":"Owen Castillo","email":"owen.castillo@brightlinesearch.com","org":"Brightline Search","is_agency_recruiter":true,"kind":"recruiter","confidence":0.85},"hiring_company":{"name":"Fernbridge","withheld":false,"confidence":0.8},"role":{"title":"Senior Platform Engineer","confidence":0.8},"additional_opportunities":[{"hiring_company":{"name":"Ridgeline","withheld":false,"confidence":0.8},"role":{"title":"Staff Backend Engineer","confidence":0.8}},{"hiring_company":{"name":"Stackwell","withheld":false,"confidence":0.8},"role":{"title":"Platform Engineer","confidence":0.8}}],"event":{"type":"email","subtype":null,"occurred_at":null,"summary":"Matt decided to move forward on the Fernbridge, Ridgeline, and Stackwell roles Brightline Search sent over, skipping the Pulsecheck SRE role."},"status_signal":null,"notes":"Pursuing 3 of the 4 roles Brightline Search sent; passing on Pulsecheck."}
+{"job_related":true,"email_kind":"recruiter_outreach","sender":{"name":"Owen Castillo","email":"owen.castillo@brightlinesearch.com","org":"Brightline Search","is_agency_recruiter":true,"kind":"recruiter","confidence":0.85},"hiring_company":{"name":"Fernbridge","withheld":false,"confidence":0.8},"role":{"title":"Senior Platform Engineer","confidence":0.8},"additional_opportunities":[{"hiring_company":{"name":"Ridgeline","withheld":false,"confidence":0.8},"role":{"title":"Staff Backend Engineer","confidence":0.8}},{"hiring_company":{"name":"Stackwell","withheld":false,"confidence":0.8},"role":{"title":"Platform Engineer","confidence":0.8}}],"event":{"type":"email","subtype":null,"occurred_at":null,"summary":"Jordan decided to move forward on the Fernbridge, Ridgeline, and Stackwell roles Brightline Search sent over, skipping the Pulsecheck SRE role."},"status_signal":null,"notes":"Pursuing 3 of the 4 roles Brightline Search sent; passing on Pulsecheck."}
 
 `status_signal` stays `null` here (not `"applied"`) — a go-ahead to a recruiter
 is a decision to pursue, not confirmation of a filed application; each becomes
