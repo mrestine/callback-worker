@@ -90,7 +90,7 @@ docker exec ollama ollama pull qwen2.5:7b-instruct
 Image: `node:24-bookworm-slim`, multi-stage (compile → `dist/`, run `node dist/main.js`).
 No native deps, so the slim image needs nothing extra.
 
-## Stage 3 / 4 — the live worker
+## The live worker
 
 `src/main.ts` now runs the real loop:
 
