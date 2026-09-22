@@ -1,5 +1,5 @@
 /**
- * §8 digest reply. After each submission the worker replies in the forwarded
+ * Digest reply. After each submission the worker replies in the forwarded
  * email's own thread with a plain-text summary, so the operator reviews from
  * their inbox instead of polling the webapp. callback stays email-free — this
  * is entirely the worker rendering the /api/inbound response.

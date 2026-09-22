@@ -11,8 +11,7 @@
  *
  * Writes an `authorized_user` token file the worker reads. Uses
  * access_type=offline + prompt=consent so a refresh token is always issued.
- * See PHASE-2-PLAN.md §1a — publish the consent screen to "In production" so
- * that refresh token never expires.
+ * Publish the consent screen to "In production" so hat refresh token never expires.
  */
 import { createServer } from 'node:http'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'

@@ -7,7 +7,6 @@ forwarded email's thread with a digest of what got queued.
 
 This repo owns *all* model interaction and every prompt. It never touches
 callback's database — the only coupling is one HTTP endpoint and a bearer token.
-See `../callback/PHASE-2-PLAN.md` for the full design.
 
 ## The model-tuning harness
 
@@ -114,9 +113,7 @@ so a re-send is a no-op.
 
 ### One-time Gmail auth
 
-The worker needs an OAuth **desktop-app** client (see `PHASE-2-PLAN.md` §1a —
-publish the consent screen to *In production* so the refresh token never
-expires). Put the downloaded client secrets JSON at `secrets/gmail-credentials.json`,
+The worker needs an OAuth **desktop-app** client. Put the downloaded client secrets JSON at `secrets/gmail-credentials.json`,
 then, on a machine with a browser:
 
 ```sh

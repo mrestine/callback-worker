@@ -3,7 +3,7 @@
  * raw messages, move labels, send the digest reply. Hand-rolled REST over
  * `fetch` — `google-auth-library` only does the token refresh.
  *
- * The label set is the worker's entire state machine (see PHASE-2-PLAN.md §1):
+ * The label set is the worker's entire state machine:
  *   <prefix>inbox -> <prefix>processing -> <prefix>processed | <prefix>error
  */
 import { readFile } from 'node:fs/promises'

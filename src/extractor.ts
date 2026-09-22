@@ -55,7 +55,7 @@ function guardBracketedSenderFields(ex: Extraction): Extraction {
  * Deterministic backstop: every message the worker sees is a forward the
  * operator sent (envelope_from), so the operator can never legitimately be
  * the email's `sender` — a small model reading a self-authored forward
- * (§clean.ts `self_authored`) sometimes attributes the quoted third party's
+ * (clean.ts `self_authored`) sometimes attributes the quoted third party's
  * role to the operator anyway. Rather than lean further on prompt wording,
  * catch it here: if the model names the operator as sender, wipe just the
  * name/email/kind — the fields that actually assert "this specific person is
