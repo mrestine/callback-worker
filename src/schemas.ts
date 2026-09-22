@@ -19,6 +19,7 @@ export const APPLICATION_STATUSES = [
   'lead',
   'applied',
   'screen',
+  'technical',
   'onsite',
   'offer',
   'rejected',

@@ -80,10 +80,11 @@ replied naming which ones to pursue) — not just because several companies are
 mentioned. `hiring_company`/`role` above are always the first one; put the
 rest here, same fields each.
 
-**status_signal** — lead | applied | screen | onsite | offer | rejected |
-withdrawn | ghosted, or `null`. Interview email → `screen` (early round) or
-`onsite` (later loop); **never `offer`**. Rejection → `rejected`.
-application_confirmation → usually `null`.
+**status_signal** — lead | applied | screen | technical | onsite | offer |
+rejected | withdrawn | ghosted, or `null`. Interview email → `screen` (recruiter
+call), `technical` (a coding/technical assessment round), or `onsite` (later
+panel loop); **never `offer`**. Rejection → `rejected`. application_confirmation
+→ usually `null`.
 
 **notes** — one short sentence: what this email means for the job search.
 
