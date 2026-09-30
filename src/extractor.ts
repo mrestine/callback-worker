@@ -133,6 +133,32 @@ function guardMissingHiringCompany(ex: Extraction): Extraction {
   return { ...ex, hiring_company: { name: org, withheld: false, confidence: ex.sender.confidence } }
 }
 
+/**
+ * Deterministic backstop: a real forward from a Google Calendar / Ashby-style
+ * interview invite — mostly boilerplate (AI Notetaker opt-out, "add to
+ * calendar" links, no plain "you have an interview for X at Y" sentence) —
+ * got job_related: false from the model despite it separately, correctly,
+ * extracting event.type: "interview" with a real event.occurred_at. Those
+ * two fields contradict each other: the model doesn't confidently produce an
+ * interview time for something it actually believes is unrelated to the job
+ * search. job_related: false is a hard dead end downstream — proposeOps
+ * dismisses the whole submission before anything else in it is even looked
+ * at, silently dropping a real interview with no reply to the operator (the
+ * exact live failure this guard fixes). email_kind also gets corrected to
+ * interview_scheduled when it isn't already an interview kind, since a
+ * populated occurred_at is precisely what distinguishes _scheduled from
+ * _invite per the prompt's own rule.
+ */
+function guardInterviewImpliesJobRelated(ex: Extraction): Extraction {
+  if (ex.job_related || ex.event.type !== 'interview' || !ex.event.occurred_at) return ex
+  if (Number.isNaN(Date.parse(ex.event.occurred_at))) return ex
+  console.warn('[extractor] job_related: false contradicted a real interview time — corrected')
+  const email_kind = ex.email_kind === 'interview_scheduled' || ex.email_kind === 'interview_invite'
+    ? ex.email_kind
+    : 'interview_scheduled'
+  return { ...ex, job_related: true, email_kind }
+}
+
 export interface ExtractOutcome {
   ok: boolean
   extraction: Extraction | null
@@ -159,8 +185,10 @@ export async function runExtraction(n: Normalized, cfg: ModelConfig): Promise<Ex
       prompt,
     }
   }
-  const guarded = guardMissingHiringCompany(
-    guardAgencyAsHiringCompany(guardOperatorIdentity(guardBracketedSenderFields(parsed.data), n)),
+  const guarded = guardInterviewImpliesJobRelated(
+    guardMissingHiringCompany(
+      guardAgencyAsHiringCompany(guardOperatorIdentity(guardBracketedSenderFields(parsed.data), n)),
+    ),
   )
   return { ok: true, extraction: guarded, raw, meta, prompt }
 }
