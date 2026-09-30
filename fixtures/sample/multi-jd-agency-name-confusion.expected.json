@@ -1,0 +1,33 @@
+{
+  "_note": "Hand-authored ideal extraction for multi-jd-agency-name-confusion.eml. Reproduces a real live bug: guardOperatorIdentity used to wipe sender.is_agency_recruiter along with identity fields, which defeated proposeOps' 'an agency is never the hiring_company' check and let the agency itself (Thornwood Partners) get created as a bogus 4th opportunity alongside the 3 real ones. The load-bearing assertion for this fixture is that 'Thornwood Partners' never appears as a hiring_company.name anywhere in the output, not the exact wording of notes/summary.",
+  "job_related": true,
+  "email_kind": "recruiter_outreach",
+  "sender": {
+    "name": "Renee Okafor",
+    "email": "renee.okafor@thornwoodpartners.com",
+    "org": "Thornwood Partners",
+    "is_agency_recruiter": true,
+    "kind": "recruiter",
+    "confidence": 0.85
+  },
+  "hiring_company": { "name": "Cardinal Credit", "withheld": false, "confidence": 0.8 },
+  "role": { "title": "Senior Software Engineer", "confidence": 0.8 },
+  "additional_opportunities": [
+    {
+      "hiring_company": { "name": "Beacon Robotics", "withheld": false, "confidence": 0.8 },
+      "role": { "title": "Staff Engineer", "confidence": 0.8 }
+    },
+    {
+      "hiring_company": { "name": "Vantage Systems", "withheld": false, "confidence": 0.8 },
+      "role": { "title": "Backend Engineer", "confidence": 0.8 }
+    }
+  ],
+  "event": {
+    "type": "email",
+    "subtype": null,
+    "occurred_at": null,
+    "summary": "Jordan decided to move forward on the Cardinal Credit, Beacon Robotics, and Vantage Systems roles Thornwood Partners sent over, skipping Harborline Health."
+  },
+  "status_signal": null,
+  "notes": "Pursuing 3 of the 4 roles Thornwood Partners sent; passing on Harborline Health."
+}

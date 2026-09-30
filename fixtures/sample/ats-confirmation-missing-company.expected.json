@@ -1,0 +1,30 @@
+{
+  "_note": "Hand-authored ideal extraction for ats-confirmation-missing-company.eml. Modeled on a real live bug: the model reliably leaves hiring_company null/withheld on ATS confirmation emails even when sender.org is filled with the same company — guardMissingHiringCompany backfills it, so this is the POST-GUARD ideal, not necessarily the model's raw output.",
+  "job_related": true,
+  "email_kind": "application_confirmation",
+  "sender": {
+    "name": "Meridian Capital Hiring",
+    "email": "no-reply@meridiancapital.io",
+    "org": "Meridian Capital",
+    "is_agency_recruiter": false,
+    "kind": "other",
+    "confidence": 0.85
+  },
+  "hiring_company": {
+    "name": "Meridian Capital",
+    "withheld": false,
+    "confidence": 0.85
+  },
+  "role": {
+    "title": "Senior / Staff Front End Engineer",
+    "confidence": 0.85
+  },
+  "event": {
+    "type": "email",
+    "subtype": null,
+    "occurred_at": null,
+    "summary": "Meridian Capital confirmed receipt of the application for the Senior / Staff Front End Engineer role."
+  },
+  "status_signal": null,
+  "notes": "Application confirmed for the Senior / Staff Front End Engineer role at Meridian Capital."
+}
