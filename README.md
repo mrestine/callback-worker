@@ -3,7 +3,11 @@
 Email ingestion for [callback](https://github.com/mrestine/callback). Polls a
 Gmail label, cleans each message, extracts structure with a **local** model
 (Ollama), submits the result to callback's `/api/inbound`, and replies in the
-forwarded email's thread with a digest of what got queued.
+forwarded email's thread with a digest of what got queued for review.
+
+It will also optionally generate a company summary based on a web search 
+of the company if the company doesn't already exist within Callback.
+This is a separate model prompt, and the results will be appended to the review item.
 
 This repo owns *all* model interaction and every prompt. It never touches
 callback's database - the only coupling is one HTTP endpoint and a bearer token.
