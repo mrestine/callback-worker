@@ -4,7 +4,7 @@
  * their inbox instead of polling the webapp. callback stays email-free - this
  * is entirely the worker rendering the /api/inbound response.
  */
-import type { Extraction } from './schemas.js'
+import type { OutgoingExtraction } from './companyNotes.js'
 import type { InboundResponse, ProposalOp } from './submit.js'
 
 const OP_VERB: Record<string, string> = {
@@ -54,10 +54,13 @@ export interface Digest {
   body: string
 }
 
+/** One line, whatever whitespace the model left in it. */
+const oneLine = (s: string) => s.replace(/\s+/g, ' ').trim()
+
 export function renderDigest(
   origSubject: string | null,
   resp: InboundResponse,
-  ex: Extraction,
+  ex: OutgoingExtraction,
   summary: string | null,
 ): Digest {
   const L: string[] = []
@@ -68,6 +71,7 @@ export function renderDigest(
   L.push(`  • kind:    ${ex.email_kind}`)
   const company = ex.hiring_company.withheld ? '(withheld)' : ex.hiring_company.name
   if (company) L.push(`  • company: ${company}`)
+  if (ex.hiring_company.notes) L.push(`  • notes:   ${oneLine(ex.hiring_company.notes)}`)
   if (ex.role.title) L.push(`  • role:    ${ex.role.title}`)
   const sender = ex.sender.name || ex.sender.email
   if (sender) L.push(`  • sender:  ${sender}${ex.sender.is_agency_recruiter ? ' (agency recruiter)' : ''}`)
@@ -76,6 +80,7 @@ export function renderDigest(
     for (const o of ex.additional_opportunities) {
       const c = o.hiring_company.withheld ? '(withheld)' : o.hiring_company.name
       L.push(`      ${o.role.title || '(role not stated)'}${c ? ` @ ${c}` : ''}`)
+      if (o.hiring_company.notes) L.push(`        ${oneLine(o.hiring_company.notes)}`)
     }
   }
   L.push('')

@@ -123,7 +123,7 @@ export async function runCycle(c: LoopConfig): Promise<{ processed: number; erro
         shouldNotify(resp, c.notifyOnDismiss) &&
         msg.envelope.fromAddress
       ) {
-        const d = renderDigest(msg.envelope.subject, resp, ex, body.summary)
+        const d = renderDigest(msg.envelope.subject, resp, outgoing, body.summary)
         await sendReply(c.auth, {
           threadId: msg.threadId,
           to: msg.envelope.fromAddress,

@@ -1,13 +1,15 @@
 /**
  * Deterministic tests for the new-company description step: the orchestration
- * (addCompanyNotes) with fake lookup/describe, and the lookup client's request
- * and response handling with a stubbed fetch. No network, database or model.
+ * (addCompanyNotes) with fake lookup/describe, the lookup client and the search
+ * with a stubbed fetch, and the digest reply that shows the result. No network,
+ * database or model.
  *
  *   npm run test:company-notes
  */
 import { addCompanyNotes } from '../companyNotes.js'
-import type { CompanyNotesDeps } from '../companyNotes.js'
+import type { CompanyNotesDeps, OutgoingExtraction } from '../companyNotes.js'
 import type { Extraction } from '../schemas.js'
+import { renderDigest } from '../notify.js'
 import { mergeResults, searchCompany } from '../serper.js'
 import { lookupCompanies } from '../submit.js'
 
@@ -277,10 +279,49 @@ async function scenarioSearch() {
   }
 }
 
+async function scenarioDigest() {
+  console.log('\n# digest reply: shows the company notes')
+  const resp = { status: 'needs_review' as const, review_url: 'https://callback.example/review/7', proposal: [] }
+  const withNotes = (over: Partial<OutgoingExtraction>): OutgoingExtraction => ({ ...extraction(), ...over }) as OutgoingExtraction
+
+  const one = renderDigest(
+    'Thanks for applying',
+    resp,
+    withNotes({ hiring_company: { ...company('Acme'), notes: 'Acme makes anvils.\n\n  Founded in 2019.' } }),
+    's',
+  )
+  const lines = one.body.split('\n')
+  const at = lines.findIndex((l) => l.includes('company: Acme'))
+  check('the notes appear as a line right after the company', lines[at + 1] === '  • notes:   Acme makes anvils. Founded in 2019.', lines.slice(at, at + 3))
+  check('line breaks in the description are collapsed onto one line', !one.body.includes('anvils.\n'), one.body)
+  check('the rest of the digest is intact (review link still there)', one.body.includes('Review: https://callback.example/review/7'))
+
+  const none = renderDigest('Thanks for applying', resp, extraction(), 's')
+  check('no notes -> no notes line at all', !none.body.includes('notes:'), none.body)
+
+  const several = renderDigest(
+    'Roles',
+    resp,
+    withNotes({
+      hiring_company: company('Acme'),
+      additional_opportunities: [
+        { hiring_company: { ...company('Globex'), notes: 'Globex does logistics.' }, role: { title: 'SRE', confidence: 0.9 } },
+        { hiring_company: company('Initech'), role: { title: 'Dev', confidence: 0.9 } },
+      ],
+    }),
+    's',
+  )
+  const sl = several.body.split('\n')
+  const g = sl.findIndex((l) => l.includes('SRE @ Globex'))
+  check("an additional company's notes sit under its own role line", sl[g + 1] === '        Globex does logistics.' && sl[g + 2].includes('Dev @ Initech'), sl.slice(g, g + 3))
+  check('...and a company without notes gets none', !sl[g + 3]?.trim().startsWith('Initech'), sl.slice(g, g + 4))
+}
+
 await scenarioOrchestration()
 await scenarioFailures()
 await scenarioLookupClient()
 await scenarioSearch()
+await scenarioDigest()
 
 console.log(`\n${failures === 0 ? 'ALL PASS' : `${failures} FAILURE(S)`}`)
 process.exit(failures === 0 ? 0 : 1)
