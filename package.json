@@ -10,6 +10,7 @@
     "pipe": "tsx src/cli/pipe.ts",
     "batch": "tsx src/cli/batch.ts",
     "eval": "tsx src/cli/eval.ts",
+    "lookup-company": "tsx src/cli/lookup-company.ts",
     "gmail:auth": "tsx src/cli/gmail-auth.ts",
     "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.build.json",
