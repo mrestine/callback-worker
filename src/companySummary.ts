@@ -18,9 +18,10 @@ import type { SearchResult } from './serper.js'
 
 const SYSTEM_PROMPT_URL = new URL('../prompts/company-summary.system.md', import.meta.url)
 
-/** Past this the extra results are mostly noise (forums, review sites) and
+/** searchCompany interleaves two queries, so this keeps the best ~4 of each.
+ *  Past that the extra results are mostly noise (forums, review sites) and
  *  just give the model more unrelated companies to be confused by. */
-const MAX_RESULTS = 6
+export const MAX_RESULTS = 8
 
 // relevant_results comes first on purpose: the model must commit to which results
 // describe the main business before it writes anything, instead of blending

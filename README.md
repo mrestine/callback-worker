@@ -141,9 +141,10 @@ useful for a first pass over a backlog.
 
 With `SERPER_API_KEY` set (a free serper.dev key, no card needed), the worker
 asks callback which of an email's companies it doesn't have yet. For each new
-one it runs a web search and has the local model write two or three
-plain-fact sentences, sent as `hiring_company.notes`; callback stores them as
-the new company's notes when you accept the proposal. callback decides what
+one it runs two web searches (what the company does, and its age, size and
+funding) and has the local model write two or three plain-fact sentences,
+sent as `hiring_company.notes`; callback stores them as the new company's
+notes when you accept the proposal. callback decides what
 counts as "new" (the same match it uses to link or create companies), so the
 worker keeps no threshold of its own, and an existing company's notes are
 never touched. Leave the key unset to turn the step off; it is also off in

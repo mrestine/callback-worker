@@ -1,0 +1,45 @@
+{
+  "_note": "Modeled on a real live case (names changed): age, size and funding are spread across several sites that disagree. Employees: 469 (newest, 'by the end of 2025'), 500, 412. Funding: $275 million total on one site, $230M raised to date on another, a stale $53.2M. What this pins: the facts spread across sources DO make it into the description. KNOWN LIMITATION it does not pin: the 7B picks among conflicting figures unreliably (it has used 412, 500 and the stale $53.2M) and once fused one site's funding TOTAL with another site's 'last funding' date into 'raised $275 million in its last funding round'. A prompt rule against that was tried and made things worse (the model stopped saying a public company was public), so it was reverted; the description is a draft the reviewer edits before approving.",
+  "name": "Marlowe Systems",
+  "results": [
+    {
+      "title": "Marlowe: Take on the Impossible",
+      "link": "https://www.marlowe.ai/",
+      "snippet": "Marlowe built a system of record that unifies workflows, data, and money movement into a single platform for escrow and title."
+    },
+    {
+      "title": "Marlowe | Company Overview & News",
+      "link": "https://www.forbes.com/companies/marlowe",
+      "snippet": "Marlowe has 469 employees, following a 50% increase in total employee count by the end of 2025. Funding: $275 million from Northgate Ventures ..."
+    },
+    {
+      "title": "Marlowe",
+      "link": "https://www.linkedin.com/company/marlowe-systems",
+      "snippet": "$230M raised to date. And MarloweOS has 3x lower closing cost with +30% higher customer satisfaction. If you're energized by ..."
+    },
+    {
+      "title": "Marlowe Systems Valuation & Funding History",
+      "link": "https://caplight.com/marlowe",
+      "snippet": "Employee Range412. Year Founded2019. Last FundingOct 22, 2024. Institutional Data Access. Join leading institutional investors ..."
+    },
+    {
+      "title": "Marlowe NYC Office: Careers, Perks + Culture",
+      "link": "https://builtinnyc.com/company/marlowe",
+      "snippet": "Marlowe. Save. HQ. New York. Total Offices: 3. 500 Total Employees. Year Founded: 2019 ... Technology We Use."
+    },
+    {
+      "title": "Marlowe raises $43.9 million",
+      "link": "https://parsers.example/marlowe",
+      "snippet": "Marlowe raises $43.9 million. Marlowe Systems Founded: 2019 Headquarters: New York, NY, US Total Funding: $53.2M"
+    }
+  ],
+  "must_include": [
+    "2019"
+  ],
+  "must_not_include": [],
+  "must_include_any": [
+    "469",
+    "500",
+    "412"
+  ]
+}

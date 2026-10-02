@@ -6,7 +6,7 @@
  *   npm run lookup-company -- "Ridgeline" --summarize --model llama3.2:3b
  */
 import { config } from 'dotenv'
-import { summarizeCompany, renderSearchResults } from '../companySummary.js'
+import { MAX_RESULTS, summarizeCompany, renderSearchResults } from '../companySummary.js'
 import { modelConfigFromEnv } from '../model.js'
 import { searchCompany } from '../serper.js'
 import { flag, has, positionalArg } from './io.js'
@@ -28,7 +28,7 @@ if (results.length === 0) {
 }
 
 if (has('--summarize')) {
-  console.log(`--- model input ---\n${renderSearchResults(name, results, flag('--context'))}\n`)
+  console.log(`--- model input ---\n${renderSearchResults(name, results.slice(0, MAX_RESULTS), flag('--context'))}\n`)
   const cfg = modelConfigFromEnv({ model: flag('--model') })
   const started = Date.now()
   const description = await summarizeCompany(name, results, cfg, flag('--context'))

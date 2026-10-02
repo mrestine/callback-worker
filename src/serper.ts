@@ -15,15 +15,19 @@ export interface SearchResult {
 
 export class SerperError extends Error {}
 
-/** `${name} company` biases toward the company's own site / news coverage
- *  over an unrelated common-word match. */
-export async function searchCompany(name: string, apiKey: string): Promise<SearchResult[]> {
-  if (!apiKey) throw new SerperError('SERPER_API_KEY is not set')
+/**
+ * Two searches, because no single query returns both halves of a description.
+ * "<name> company" gets the company's own pages (what it does), which say
+ * nothing about age, size or funding; those live on other sites (Crunchbase,
+ * LinkedIn, Forbes, BuiltIn...) and only surface for a query that asks for them.
+ */
+const queriesFor = (name: string) => [`${name} company`, `${name} funding employees founded`]
 
+async function search(q: string, apiKey: string): Promise<SearchResult[]> {
   const res = await fetch('https://google.serper.dev/search', {
     method: 'POST',
     headers: { 'X-API-KEY': apiKey, 'content-type': 'application/json' },
-    body: JSON.stringify({ q: `${name} company` }),
+    body: JSON.stringify({ q }),
   })
 
   if (!res.ok) {
@@ -36,4 +40,42 @@ export async function searchCompany(name: string, apiKey: string): Promise<Searc
   return (data.organic ?? [])
     .filter((r) => r.title && r.link && r.snippet)
     .map((r) => ({ title: r.title!, link: r.link!, snippet: r.snippet! }))
+}
+
+/**
+ * Best result of each list first, then the second best of each, and so on,
+ * dropping a page already seen. Taking the top N of this gives the model the
+ * best hits of every query instead of all of one query's.
+ */
+export function mergeResults(lists: SearchResult[][]): SearchResult[] {
+  const seen = new Set<string>()
+  const out: SearchResult[] = []
+  const longest = Math.max(0, ...lists.map((l) => l.length))
+  for (let i = 0; i < longest; i++) {
+    for (const list of lists) {
+      const r = list[i]
+      const id = r?.link.replace(/\/$/, '')
+      if (r && id && !seen.has(id)) {
+        seen.add(id)
+        out.push(r)
+      }
+    }
+  }
+  return out
+}
+
+/**
+ * Search for a company by name. If one of the two searches fails the other's
+ * results are still returned; it only throws when both do.
+ */
+export async function searchCompany(name: string, apiKey: string): Promise<SearchResult[]> {
+  if (!apiKey) throw new SerperError('SERPER_API_KEY is not set')
+
+  const settled = await Promise.allSettled(queriesFor(name).map((q) => search(q, apiKey)))
+  const lists = settled.flatMap((s) => (s.status === 'fulfilled' ? [s.value] : []))
+  if (lists.length === 0) {
+    const failed = settled.find((s): s is PromiseRejectedResult => s.status === 'rejected')
+    throw failed?.reason ?? new SerperError('search failed')
+  }
+  return mergeResults(lists)
 }

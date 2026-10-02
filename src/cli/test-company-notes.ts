@@ -8,6 +8,7 @@
 import { addCompanyNotes } from '../companyNotes.js'
 import type { CompanyNotesDeps } from '../companyNotes.js'
 import type { Extraction } from '../schemas.js'
+import { mergeResults, searchCompany } from '../serper.js'
 import { lookupCompanies } from '../submit.js'
 
 let failures = 0
@@ -220,9 +221,66 @@ async function scenarioLookupClient() {
   }
 }
 
+async function scenarioSearch() {
+  console.log('\n# searchCompany: two searches, merged (stubbed fetch)')
+  const r = (id: string, link = `https://${id}.example/`) => ({ title: `T ${id}`, link, snippet: `S ${id}` })
+
+  const merged = mergeResults([
+    [r('a1'), r('a2'), r('a3')],
+    [r('b1'), r('dup', 'https://a2.example'), r('b3')], // same page as a2, trailing slash aside
+  ])
+  check('interleaves best-first and drops a page seen twice', merged.map((x) => x.snippet).join(',') === 'S a1,S b1,S a2,S a3,S b3', merged.map((x) => x.snippet))
+
+  const realFetch = globalThis.fetch
+  const queries: string[] = []
+  let keySent: string | undefined
+  const stub = (respond: (q: string) => Response) => {
+    queries.length = 0
+    globalThis.fetch = (async (_url: string | URL | Request, init?: RequestInit) => {
+      const q = (JSON.parse(String(init?.body)) as { q: string }).q
+      queries.push(q)
+      keySent = (init?.headers as Record<string, string>)['X-API-KEY']
+      return respond(q)
+    }) as typeof fetch
+  }
+  const organic = (id: string) => new Response(JSON.stringify({ organic: [{ title: `T ${id}`, link: `https://${id}.example/`, snippet: `S ${id}` }] }))
+  try {
+    stub((q) => organic(q.endsWith('company') ? 'about' : 'facts'))
+    const got = await searchCompany('Acme', 'key123')
+    check('asks for what the company does AND for its facts', queries.includes('Acme company') && queries.includes('Acme funding employees founded'), queries)
+    check('sends the API key', keySent === 'key123', keySent)
+    check('returns the merged results of both', got.map((x) => x.snippet).sort().join(',') === 'S about,S facts', got)
+
+    stub((q) => (q.endsWith('company') ? new Response('boom', { status: 500 }) : organic('facts')))
+    const partial = await searchCompany('Acme', 'k')
+    check('one search failing -> the other one still answers', partial.length === 1 && partial[0].snippet === 'S facts', partial)
+
+    stub(() => new Response('boom', { status: 500 }))
+    let threw = ''
+    try {
+      await searchCompany('Acme', 'k')
+    } catch (err) {
+      threw = (err as Error).message
+    }
+    check('both failing -> throws', threw.includes('500'), threw)
+
+    stub(() => organic('x')) // resets the request recorder
+    let noKey = ''
+    try {
+      await searchCompany('Acme', '')
+    } catch (err) {
+      noKey = (err as Error).message
+    }
+    check('no API key -> throws before any request is made', noKey.includes('SERPER_API_KEY') && queries.length === 0, { noKey, queries })
+  } finally {
+    globalThis.fetch = realFetch
+  }
+}
+
 await scenarioOrchestration()
 await scenarioFailures()
 await scenarioLookupClient()
+await scenarioSearch()
 
 console.log(`\n${failures === 0 ? 'ALL PASS' : `${failures} FAILURE(S)`}`)
 process.exit(failures === 0 ? 0 : 1)
