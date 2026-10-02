@@ -1,5 +1,5 @@
 {
-  "_note": "Hand-authored ideal extraction for ats-confirmation-missing-company.eml. Modeled on a real live bug: the model reliably leaves hiring_company null/withheld on ATS confirmation emails even when sender.org is filled with the same company — guardMissingHiringCompany backfills it, so this is the POST-GUARD ideal, not necessarily the model's raw output.",
+  "_note": "Hand-authored ideal extraction for ats-confirmation-missing-company.eml. Modeled on a real live bug: the model reliably leaves hiring_company null/withheld on ATS confirmation emails even when sender.org is filled with the same company - guardMissingHiringCompany backfills it, so this is the POST-GUARD ideal, not necessarily the model's raw output.",
   "job_related": true,
   "email_kind": "application_confirmation",
   "sender": {

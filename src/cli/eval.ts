@@ -1,5 +1,5 @@
 /**
- * Scored eval harness for the extraction prompt (+ guards) — the model-driven
+ * Scored eval harness for the extraction prompt (+ guards) - the model-driven
  * part of the pipeline, which is why it needs a harness at all: everything
  * else (clean.ts, the guards themselves, callback's matching/proposal logic)
  * is deterministic code and testable the normal way. This isn't.
@@ -7,18 +7,18 @@
  * For every fixtures/sample/<name>.expected.json with a matching <name>.eml,
  * runs the SAME clean() -> runExtraction() path production uses (model call
  * + guards), and diffs the result against the hand-authored expected output.
- * Read-only against the real pipeline — never touches Gmail or callback.
+ * Read-only against the real pipeline - never touches Gmail or callback.
  *
  * Comparison policy (see `compare` below):
  *   - most fields: exact match after trimming strings
  *   - event.occurred_at: compared as parsed instants, not strings
  *   - additional_opportunities: recursed into as an array (length + each entry)
- *   - confidence (anywhere), event.summary, notes: SKIPPED — free-text/
+ *   - confidence (anywhere), event.summary, notes: SKIPPED - free-text/
  *     subjective fields a "correct" fixture shouldn't have to pin exactly
  *   - _note: skipped (fixture documentation, not part of the schema)
  *
  * A fixture fails if ANY non-skipped field mismatches. Exit code is non-zero
- * if any fixture failed — wire this into your own habit of running it before
+ * if any fixture failed - wire this into your own habit of running it before
  * committing a prompt or guard change, same idea as any other regression gate.
  *
  *   npm run eval                       # fixtures/sample, default model
@@ -140,6 +140,6 @@ for (const f of files) {
 }
 
 process.stdout.write(
-  `\n${passedChecks}/${totalChecks} field checks passed — ${files.length - fixturesFailed}/${files.length} fixtures fully passed\n`,
+  `\n${passedChecks}/${totalChecks} field checks passed - ${files.length - fixturesFailed}/${files.length} fixtures fully passed\n`,
 )
 process.exit(fixturesFailed > 0 ? 1 : 0)

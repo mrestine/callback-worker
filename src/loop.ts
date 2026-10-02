@@ -1,5 +1,5 @@
 /**
- * One poll cycle: for every outstanding Gmail message —
+ * One poll cycle: for every outstanding Gmail message -
  *   claim (label processing) -> clean -> extract -> submit -> (disambiguate)
  *   -> digest reply -> label processed
  *
@@ -134,7 +134,7 @@ export async function runCycle(c: LoopConfig): Promise<{ processed: number; erro
     } catch (err) {
       if (err instanceof GmailAuthError) throw err // -> main, FATAL
       if (err instanceof SubmitTransportError) {
-        console.error(`[loop] ${id} callback unreachable — left in processing for retry: ${err.message}`)
+        console.error(`[loop] ${id} callback unreachable - left in processing for retry: ${err.message}`)
         errored++
         continue
       }

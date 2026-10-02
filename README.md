@@ -6,7 +6,7 @@ Gmail label, cleans each message, extracts structure with a **local** model
 forwarded email's thread with a digest of what got queued.
 
 This repo owns *all* model interaction and every prompt. It never touches
-callback's database — the only coupling is one HTTP endpoint and a bearer token.
+callback's database - the only coupling is one HTTP endpoint and a bearer token.
 
 ## The model-tuning harness
 
@@ -50,7 +50,7 @@ npm run typecheck
 ```
 
 Extraction JSON goes to **stdout**; timings, warnings, and failures go to
-**stderr** — so `preprocess | extract > out.json` stays clean.
+**stderr** - so `preprocess | extract > out.json` stays clean.
 
 The tuning loop: `npm run batch -- fixtures/private`, eyeball the
 `*.extract.out.json` files against your expectations, edit
@@ -59,7 +59,7 @@ The tuning loop: `npm run batch -- fixtures/private`, eyeball the
 ## Container
 
 The worker runs as its own container. **Ollama runs separately** (its own
-container publishing `11434`, or on the host) — not in this compose. On Docker
+container publishing `11434`, or on the host) - not in this compose. On Docker
 Desktop set `OLLAMA_URL=http://host.docker.internal:11434` in `.env`.
 
 ### Tuning from another machine
@@ -76,7 +76,7 @@ docker exec callback-worker node dist/cli/batch.js fixtures/private
 docker exec callback-worker node dist/cli/batch.js fixtures/private --model llama3.1:8b
 ```
 
-`*.out.json` results land in `./fixtures/private/` on the host (gitignored) —
+`*.out.json` results land in `./fixtures/private/` on the host (gitignored) -
 open them from the desktop or `scp` them off.
 
 Reference Ollama container:
@@ -99,7 +99,7 @@ poll Gmail by label  →  clean  →  extract (local model)  →  POST /api/inbo
                      →  (disambiguate, a 2nd model call)  →  digest reply  →  relabel
 ```
 
-**Gmail labels are the entire state machine** — no local DB, no cursor, no
+**Gmail labels are the entire state machine** - no local DB, no cursor, no
 outbox:
 
 ```
@@ -108,7 +108,7 @@ callback/inbox  →  callback/processing  →  callback/processed | callback/err
 
 `callback/inbox` is applied by a Gmail filter on the forwarding address; the
 worker owns the other three. Anything left in `callback/processing` (crash, lost
-response) is re-run next poll — `/api/inbound` dedups on `(source, external_ref)`
+response) is re-run next poll - `/api/inbound` dedups on `(source, external_ref)`
 so a re-send is a no-op.
 
 ### One-time Gmail auth
@@ -120,7 +120,7 @@ then, on a machine with a browser:
 mkdir -p secrets   # drop gmail-credentials.json in here
 GMAIL_CREDENTIALS_PATH=./secrets/gmail-credentials.json \
 GMAIL_TOKEN_PATH=./secrets/gmail-token.json \
-npm run gmail:auth          # prints a URL — open it, approve, done
+npm run gmail:auth          # prints a URL - open it, approve, done
 ```
 
 That writes `secrets/gmail-token.json` (an `authorized_user` refresh token).
@@ -134,7 +134,7 @@ docker compose up --build -d
 docker compose logs -f worker
 ```
 
-`DRY_RUN=true` extracts and prints but never submits, relabels, or replies —
+`DRY_RUN=true` extracts and prints but never submits, relabels, or replies -
 useful for a first pass over a backlog.
 
 ### Failure modes

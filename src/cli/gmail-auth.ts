@@ -1,11 +1,11 @@
 /**
  * One-time Gmail OAuth bootstrap. Run on a machine with a browser (RDP into the
- * box is fine — the URL is printed for you to paste):
+ * box is fine - the URL is printed for you to paste):
  *
  *   mkdir secrets            # drop gmail-credentials.json in here
  *   npm run gmail:auth
  *
- * No shell-specific env-var syntax needed — reads GMAIL_CREDENTIALS_PATH /
+ * No shell-specific env-var syntax needed - reads GMAIL_CREDENTIALS_PATH /
  * GMAIL_TOKEN_PATH from .env if set, else defaults to ./secrets/gmail-*.json
  * (host-relative; this always runs outside the container).
  *
@@ -94,7 +94,7 @@ const code: string = await new Promise((resolve, reject) => {
 const { tokens } = await client.getToken(code)
 if (!tokens.refresh_token) {
   console.error(
-    '\nNo refresh_token returned. Google only sends one on a fresh grant — revoke this app at\n' +
+    '\nNo refresh_token returned. Google only sends one on a fresh grant - revoke this app at\n' +
       '  https://myaccount.google.com/permissions\n' +
       'then run `npm run gmail:auth` again.',
   )

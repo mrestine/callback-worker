@@ -1,12 +1,12 @@
 /**
- * Container entrypoint — the poll loop.
+ * Container entrypoint - the poll loop.
  *
  *   poll Gmail by label -> clean -> extract (local model) -> POST /api/inbound
  *   -> (disambiguate) -> digest reply -> relabel
  *
  * Gmail labels are the entire state machine; there is no local store. If the
  * Gmail refresh token dies the loop can't do anything useful (and can't even
- * email a warning), so it logs FATAL and idles — an external HEALTHCHECK_URL
+ * email a warning), so it logs FATAL and idles - an external HEALTHCHECK_URL
  * going quiet is the out-of-band alert.
  */
 import { modelConfigFromEnv } from './model.js'
@@ -83,7 +83,7 @@ async function main(): Promise<void> {
     } catch (err) {
       if (err instanceof GmailAuthError) {
         fatal = true
-        console.error(`\nFATAL: Gmail auth is dead — the poll loop is stopped.\n  ${err.message}\n`)
+        console.error(`\nFATAL: Gmail auth is dead - the poll loop is stopped.\n  ${err.message}\n`)
         console.error(
           'Re-run `npm run gmail:auth` on a machine with a browser, replace ' +
             `${process.env.GMAIL_TOKEN_PATH}, and restart the container.`,

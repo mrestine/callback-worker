@@ -1,7 +1,7 @@
 /**
  * Digest reply. After each submission the worker replies in the forwarded
  * email's own thread with a plain-text summary, so the operator reviews from
- * their inbox instead of polling the webapp. callback stays email-free — this
+ * their inbox instead of polling the webapp. callback stays email-free - this
  * is entirely the worker rendering the /api/inbound response.
  */
 import type { Extraction } from './schemas.js'
@@ -44,9 +44,9 @@ function describeOp(op: ProposalOp): string {
 
 const STATUS_LINE: Record<InboundResponse['status'], string> = {
   needs_review: 'Queued for your review.',
-  needs_disambiguation: 'Queued — a match needs you to choose between candidates.',
+  needs_disambiguation: 'Queued - a match needs you to choose between candidates.',
   dismissed: 'Ignored as not job-related.',
-  duplicate: 'Looks like a duplicate of an earlier message — nothing queued.',
+  duplicate: 'Looks like a duplicate of an earlier message - nothing queued.',
 }
 
 export interface Digest {
@@ -95,7 +95,7 @@ export function renderDigest(
     L.push(`Review: ${resp.review_url}`)
   }
   L.push('')
-  L.push('— callback-worker')
+  L.push('- callback-worker')
 
   return { subject: origSubject ?? 'job email', body: L.join('\n') }
 }

@@ -1,7 +1,7 @@
 /**
  * The optional second model call. When callback returns `needs_disambiguation`
  * (a link op has candidates but no confident match), ask the model to pick.
- * Multiple-choice — a 7B does this reliably. If it says "none", the op is left
+ * Multiple-choice - a 7B does this reliably. If it says "none", the op is left
  * for the human in the review UI. callback never calls a model; this does.
  */
 import { readFile } from 'node:fs/promises'

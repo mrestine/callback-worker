@@ -72,7 +72,7 @@ function unwrapForward(body: string): { headers: FwdHeaders; body: string } | nu
   if (at === -1) return null
 
   // The reproduced-header block runs to the first blank line. A long
-  // Subject:/To: often wraps onto an unprefixed continuation line — append
+  // Subject:/To: often wraps onto an unprefixed continuation line - append
   // those to the previous header rather than treating them as body.
   const after = body.slice(at + len).replace(/^\s*\n/, '')
   const lines = after.split('\n')
@@ -174,7 +174,7 @@ export async function clean(raw: Buffer | string): Promise<Normalized> {
   let origDate: string | null = null
   const dateSrc = fwd?.headers.date
   if (dateSrc) {
-    // Gmail renders forwarded dates as "Wed, Sep 9, 2026 at 1:47 PM" — drop the " at ".
+    // Gmail renders forwarded dates as "Wed, Sep 9, 2026 at 1:47 PM" - drop the " at ".
     const d = new Date(dateSrc.replace(/\s+at\s+/i, ' '))
     origDate = Number.isNaN(d.getTime()) ? null : d.toISOString()
   } else if (parsed.date) {
@@ -183,7 +183,7 @@ export async function clean(raw: Buffer | string): Promise<Normalized> {
 
   let body = fwd?.body ?? rawBody
   // On a self-authored forward, the real content (the recruiter's original
-  // email) is exactly what a normal reply chain would cut as "quoted noise" —
+  // email) is exactly what a normal reply chain would cut as "quoted noise" -
   // it's quoted below the operator's own short note, not disclaimer junk. Keep
   // it; the model is told (via the prompt note) to read past the operator's own
   // reply for the actual sender/company/role.

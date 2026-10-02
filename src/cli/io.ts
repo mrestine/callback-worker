@@ -24,7 +24,7 @@ export function toEml(buf: Buffer): Buffer {
       const obj = JSON.parse(s) as { raw?: string }
       if (typeof obj.raw === 'string') return Buffer.from(obj.raw, 'base64url')
     } catch {
-      /* not JSON — treat as raw .eml */
+      /* not JSON - treat as raw .eml */
     }
   }
   return buf

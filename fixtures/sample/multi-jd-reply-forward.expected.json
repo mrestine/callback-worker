@@ -1,5 +1,5 @@
 {
-  "_note": "Hand-authored ideal extraction for multi-jd-reply-forward.eml — not asserted automatically. Exercises additional_opportunities: an agency recruiter sent 4 JDs, the operator's self-authored-forward reply names 3 to pursue and explicitly skips the 4th (Pulsecheck), which must not appear anywhere in the output.",
+  "_note": "Hand-authored ideal extraction for multi-jd-reply-forward.eml - not asserted automatically. Exercises additional_opportunities: an agency recruiter sent 4 JDs, the operator's self-authored-forward reply names 3 to pursue and explicitly skips the 4th (Pulsecheck), which must not appear anywhere in the output.",
   "job_related": true,
   "email_kind": "recruiter_outreach",
   "sender": {

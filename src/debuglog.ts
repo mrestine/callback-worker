@@ -11,7 +11,7 @@ import type { ExtractOutcome } from './extractor.js'
 
 const DEBUG_DIR = process.env.DEBUG_LOG_DIR || 'debug'
 
-/** the non-operator party's address — envelope_from is always the operator
+/** the non-operator party's address - envelope_from is always the operator
  *  (see clean.ts), so prefer orig_from when it differs, else orig_to. */
 function otherEmail(n: Normalized): string {
   const operator = n.envelope_from.email.toLowerCase()

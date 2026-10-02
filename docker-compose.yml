@@ -1,6 +1,6 @@
 # Runs the worker only. Ollama is expected to be running separately (a container
 # publishing 11434, or on the host). On Docker Desktop, host.docker.internal
-# reaches the host — set OLLAMA_URL=http://host.docker.internal:11434 in .env.
+# reaches the host - set OLLAMA_URL=http://host.docker.internal:11434 in .env.
 services:
   worker:
     build: .
@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     volumes:
       # Gmail OAuth client secrets + cached token. `mkdir secrets`, drop the
-      # client JSON in, then run `npm run gmail:auth` once. No other state —
+      # client JSON in, then run `npm run gmail:auth` once. No other state -
       # Gmail labels are the state machine.
       - ./secrets:/app/secrets
 
@@ -18,7 +18,7 @@ services:
       - ./fixtures:/app/fixtures # drop real .eml files in ./fixtures/private
       - ./prompts:/app/prompts # edit extract.system.md / disambiguate.system.md on the host
 
-      # every extraction's exact model input/output — <ts>-<other-email>.cleaned.json
+      # every extraction's exact model input/output - <ts>-<other-email>.cleaned.json
       # (normalized + prompt) and .processed.json (raw + parsed extraction), so a bad
       # extraction can be diagnosed from the host without guessing what the model saw.
       - ./debug:/app/debug

@@ -4,7 +4,7 @@
  *
  * Transport failures are retried with backoff; a 4xx is not (it won't get
  * better). On give-up we throw `SubmitTransportError` so the loop leaves the
- * message in `callback/processing` for the next poll — callback dedups on
+ * message in `callback/processing` for the next poll - callback dedups on
  * (source, external_ref), so a re-send is a no-op.
  */
 import type { Extraction } from './schemas.js'

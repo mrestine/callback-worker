@@ -1,6 +1,6 @@
 /**
  * Minimal Ollama client. Chat with a JSON-schema `format` so decoding is
- * grammar-constrained — the model physically cannot emit prose or malformed
+ * grammar-constrained - the model physically cannot emit prose or malformed
  * JSON. `temperature: 0` for determinism.
  */
 

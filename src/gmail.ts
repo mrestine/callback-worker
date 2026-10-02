@@ -1,7 +1,7 @@
 /**
  * Gmail: OAuth (desktop client + cached refresh token), poll by label, fetch
  * raw messages, move labels, send the digest reply. Hand-rolled REST over
- * `fetch` — `google-auth-library` only does the token refresh.
+ * `fetch` - `google-auth-library` only does the token refresh.
  *
  * The label set is the worker's entire state machine:
  *   <prefix>inbox -> <prefix>processing -> <prefix>processed | <prefix>error
@@ -12,7 +12,7 @@ import { OAuth2Client } from 'google-auth-library'
 
 const GMAIL = 'https://gmail.googleapis.com/gmail/v1/users/me'
 
-/** Thrown when the refresh token is dead — main turns this into a FATAL. */
+/** Thrown when the refresh token is dead - main turns this into a FATAL. */
 export class GmailAuthError extends Error {
   constructor(message: string) {
     super(message)
@@ -49,11 +49,11 @@ export async function loadAuth(paths: GmailAuthPaths): Promise<OAuth2Client> {
     token = JSON.parse(await readFile(paths.tokenPath, 'utf8'))
   } catch {
     throw new GmailAuthError(
-      `no Gmail token at ${paths.tokenPath} — run \`npm run gmail:auth\` once on a machine with a browser`,
+      `no Gmail token at ${paths.tokenPath} - run \`npm run gmail:auth\` once on a machine with a browser`,
     )
   }
   if (!token.refresh_token) {
-    throw new GmailAuthError(`${paths.tokenPath} has no refresh_token — re-run \`npm run gmail:auth\``)
+    throw new GmailAuthError(`${paths.tokenPath} has no refresh_token - re-run \`npm run gmail:auth\``)
   }
   const client = new OAuth2Client({
     clientId: secrets.client_id,
@@ -72,7 +72,7 @@ async function accessToken(auth: OAuth2Client): Promise<string> {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     if (/invalid_grant|invalid_rapt|unauthorized_client|no refresh token/i.test(msg)) {
-      throw new GmailAuthError(`Gmail refresh failed (${msg}) — re-run \`npm run gmail:auth\``)
+      throw new GmailAuthError(`Gmail refresh failed (${msg}) - re-run \`npm run gmail:auth\``)
     }
     throw err
   }
@@ -93,7 +93,7 @@ async function api<T>(
     },
   })
   if (res.status === 401) {
-    throw new GmailAuthError(`Gmail 401 on ${path} — token rejected`)
+    throw new GmailAuthError(`Gmail 401 on ${path} - token rejected`)
   }
   if (!res.ok) {
     throw new Error(`Gmail ${res.status} ${res.statusText} on ${path}: ${await res.text().catch(() => '')}`)
@@ -156,7 +156,7 @@ export interface FetchedMessage {
   id: string
   threadId: string
   raw: Buffer
-  /** envelope headers of the *forward* — used to thread the digest reply */
+  /** envelope headers of the *forward* - used to thread the digest reply */
   envelope: { messageId: string | null; fromAddress: string | null; subject: string | null }
 }
 

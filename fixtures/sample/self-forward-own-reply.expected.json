@@ -1,5 +1,5 @@
 {
-  "_note": "Hand-authored ideal extraction for self-forward-own-reply.eml — not asserted automatically. This fixture exercises the self-authored-forward fix: the operator forwarded their OWN sent reply (agreeing to a role over the phone) instead of the recruiter's original email. clean.ts detects this (orig_from == envelope from) and stops stripping the quoted original, since that's where the real sender/company info lives; a 'Clipboard JD' pasted-image label must not become role.title.",
+  "_note": "Hand-authored ideal extraction for self-forward-own-reply.eml - not asserted automatically. This fixture exercises the self-authored-forward fix: the operator forwarded their OWN sent reply (agreeing to a role over the phone) instead of the recruiter's original email. clean.ts detects this (orig_from == envelope from) and stops stripping the quoted original, since that's where the real sender/company info lives; a 'Clipboard JD' pasted-image label must not become role.title.",
   "job_related": true,
   "email_kind": "recruiter_outreach",
   "sender": {

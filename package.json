@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "description": "Email ingestion worker for callback — poll, clean, extract with a local model, submit.",
+  "description": "Email ingestion worker for callback - poll, clean, extract with a local model, submit.",
   "scripts": {
     "preprocess": "tsx src/cli/preprocess.ts",
     "extract": "tsx src/cli/extract.ts",

@@ -1,5 +1,5 @@
 {
-  "_note": "Hand-authored ideal extraction for bracketed-sender-address.eml. Reproduces a real live bug: a bare '<no-reply@...>' From: header with no display name — the model sometimes copies that whole bracketed token verbatim into sender.name/sender.email instead of the bare address. guardBracketedSenderFields strips it, so sender.name should end up empty here, not the literal string.",
+  "_note": "Hand-authored ideal extraction for bracketed-sender-address.eml. Reproduces a real live bug: a bare '<no-reply@...>' From: header with no display name - the model sometimes copies that whole bracketed token verbatim into sender.name/sender.email instead of the bare address. guardBracketedSenderFields strips it, so sender.name should end up empty here, not the literal string.",
   "job_related": true,
   "email_kind": "application_confirmation",
   "sender": {

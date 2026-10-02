@@ -40,7 +40,7 @@ for (const f of files) {
     )
     process.stdout.write(
       `${(out.ok ? 'ok' : 'FAIL').padEnd(4)} ${f.padEnd(40)} ${String(out.meta.total_ms).padStart(6)}ms  ` +
-        `${n.orig_from.email} · ${out.extraction?.email_kind ?? '—'}\n`,
+        `${n.orig_from.email} · ${out.extraction?.email_kind ?? '-'}\n`,
     )
     if (out.ok) ok++
   } catch (err) {

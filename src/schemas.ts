@@ -53,7 +53,7 @@ export const normalized = z.object({
   orig_subject: z.string(),
   orig_from: z.object({ name: z.string(), email: z.string() }),
   orig_to: z.object({ name: z.string(), email: z.string() }),
-  /** the envelope From — always the operator, since every message the worker
+  /** the envelope From - always the operator, since every message the worker
    *  sees is a forward the operator sent */
   envelope_from: z.object({ name: z.string(), email: z.string() }),
   /** ISO 8601, or null if unparseable */
@@ -62,7 +62,7 @@ export const normalized = z.object({
   /** true when no "Forwarded message" block was found and envelope headers were used */
   unwrap_fallback: z.boolean(),
   /** true when the forward's From: is the operator's own address (they forwarded
-   *  their own sent reply, not an inbound email) — see clean.ts */
+   *  their own sent reply, not an inbound email) - see clean.ts */
   self_authored: z.boolean(),
 })
 export type Normalized = z.infer<typeof normalized>
@@ -73,7 +73,7 @@ const confidence = z.number().min(0).max(1)
 const hiringCompany = z.object({
   /** the ACTUAL employer, or null */
   name: z.string().nullable(),
-  /** true = a blind/confidential submission — employer deliberately not named */
+  /** true = a blind/confidential submission - employer deliberately not named */
   withheld: z.boolean(),
   confidence,
 })

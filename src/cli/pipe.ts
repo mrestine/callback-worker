@@ -16,7 +16,7 @@ if (has('--norm')) {
   process.stderr.write(`--- NORMALIZED ---\n${JSON.stringify(n, null, 2)}\n\n`)
 }
 if (n.unwrap_fallback) {
-  process.stderr.write('warn: no "Forwarded message" block found — used envelope headers\n')
+  process.stderr.write('warn: no "Forwarded message" block found - used envelope headers\n')
 }
 
 const cfg = modelConfigFromEnv({ model: flag('--model') })
