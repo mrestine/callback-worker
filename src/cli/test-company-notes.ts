@@ -1,0 +1,228 @@
+/**
+ * Deterministic tests for the new-company description step: the orchestration
+ * (addCompanyNotes) with fake lookup/describe, and the lookup client's request
+ * and response handling with a stubbed fetch. No network, database or model.
+ *
+ *   npm run test:company-notes
+ */
+import { addCompanyNotes } from '../companyNotes.js'
+import type { CompanyNotesDeps } from '../companyNotes.js'
+import type { Extraction } from '../schemas.js'
+import { lookupCompanies } from '../submit.js'
+
+let failures = 0
+function check(label: string, cond: boolean, detail?: unknown) {
+  console.log(`  ${cond ? 'ok  ' : 'FAIL'} ${label}`)
+  if (!cond) {
+    failures++
+    if (detail !== undefined) console.log('       ', JSON.stringify(detail))
+  }
+}
+
+/** Run fn with the step's own progress logging muted. */
+async function quiet<T>(fn: () => Promise<T>): Promise<T> {
+  const [log, warn] = [console.log, console.warn]
+  console.log = () => {}
+  console.warn = () => {}
+  try {
+    return await fn()
+  } finally {
+    console.log = log
+    console.warn = warn
+  }
+}
+
+function company(name: string | null, withheld = false) {
+  return { name, withheld, confidence: 0.9 }
+}
+
+function extraction(over: Partial<Extraction> = {}): Extraction {
+  return {
+    job_related: true,
+    email_kind: 'recruiter_outreach',
+    sender: { name: 'Pat', email: 'pat@mail.example', org: null, is_agency_recruiter: false, kind: 'recruiter', confidence: 0.9 },
+    hiring_company: company('Acme'),
+    role: { title: 'Staff Engineer', confidence: 0.9 },
+    additional_opportunities: [],
+    event: { type: 'email', subtype: null, occurred_at: null, summary: 'Intro.' },
+    status_signal: null,
+    notes: 'Recruiter reached out.',
+    ...over,
+  }
+}
+
+/** Fake deps that record every call. `existing` = names callback already has. */
+function fakeDeps(existing: string[], descriptions: Record<string, string> = {}) {
+  const calls = { lookup: [] as string[][], describe: [] as [string, string | undefined][] }
+  const deps: CompanyNotesDeps = {
+    async lookup(names) {
+      calls.lookup.push(names)
+      return names.map((name) => ({ name, exists: existing.map((e) => e.toLowerCase()).includes(name.toLowerCase()) }))
+    },
+    async describe(name, context) {
+      calls.describe.push([name, context])
+      return descriptions[name] ?? ''
+    },
+  }
+  return { deps, calls }
+}
+
+async function scenarioOrchestration() {
+  console.log('\n# addCompanyNotes: who gets described')
+
+  // a company callback already has is left alone
+  {
+    const { deps, calls } = fakeDeps(['Acme'], { Acme: 'should not be used' })
+    const out = await quiet(() => addCompanyNotes(extraction(), deps))
+    check('existing company -> never described', calls.describe.length === 0, calls)
+    check('existing company -> no notes attached', !('notes' in out.hiring_company), out.hiring_company)
+  }
+
+  // a new company is described, with the role as context, and gets the notes
+  {
+    const { deps, calls } = fakeDeps([], { Acme: 'Acme builds anvils.' })
+    const out = await quiet(() => addCompanyNotes(extraction(), deps))
+    check('new company -> described once', calls.describe.length === 1 && calls.describe[0][0] === 'Acme', calls)
+    check('...with the role it is being considered for as context', calls.describe[0][1] === 'applying for a Staff Engineer role', calls)
+    check('...and the description lands on hiring_company.notes', out.hiring_company.notes === 'Acme builds anvils.', out.hiring_company)
+  }
+
+  // several companies: only the new one is described, each keeps its own notes
+  {
+    const ex = extraction({
+      hiring_company: company('Acme'),
+      additional_opportunities: [
+        { hiring_company: company('Globex'), role: { title: 'Backend Engineer', confidence: 0.9 } },
+        { hiring_company: company('Initech'), role: { title: null, confidence: 0.2 } },
+      ],
+    })
+    const { deps, calls } = fakeDeps(['Globex'], { Acme: 'Acme text.', Initech: 'Initech text.' })
+    const out = await quiet(() => addCompanyNotes(ex, deps))
+    check('one lookup call carries every distinct name', calls.lookup.length === 1 && calls.lookup[0].join('|') === 'Acme|Globex|Initech', calls.lookup)
+    check('only the new companies are described', calls.describe.map((d) => d[0]).join('|') === 'Acme|Initech', calls.describe)
+    check('a role with no title -> no context', calls.describe[1][1] === undefined, calls.describe)
+    check('each new company gets its own notes', out.hiring_company.notes === 'Acme text.' && out.additional_opportunities[1].hiring_company.notes === 'Initech text.', out)
+    check('the existing one in between is untouched', !('notes' in out.additional_opportunities[0].hiring_company), out.additional_opportunities[0])
+  }
+
+  // the same company twice (two roles) is looked up and described once
+  {
+    const ex = extraction({
+      hiring_company: company('Acme'),
+      additional_opportunities: [{ hiring_company: company(' ACME '), role: { title: 'SRE', confidence: 0.9 } }],
+    })
+    const { deps, calls } = fakeDeps([], { Acme: 'Acme text.' })
+    const out = await quiet(() => addCompanyNotes(ex, deps))
+    check('same company by another spelling -> one lookup name', calls.lookup[0].length === 1, calls.lookup)
+    check('...described once', calls.describe.length === 1, calls.describe)
+    check('...and both slots carry the notes', out.hiring_company.notes === 'Acme text.' && out.additional_opportunities[0].hiring_company.notes === 'Acme text.', out)
+  }
+
+  // nothing to look up
+  {
+    const ex = extraction({ hiring_company: company(null, true), additional_opportunities: [{ hiring_company: company('Hidden', true), role: { title: null, confidence: 0.1 } }] })
+    const { deps, calls } = fakeDeps([])
+    const out = await quiet(() => addCompanyNotes(ex, deps))
+    check('nameless and withheld companies -> no lookup at all', calls.lookup.length === 0 && calls.describe.length === 0, calls)
+    check('...and the extraction comes back as it was', out === ex)
+  }
+}
+
+async function scenarioFailures() {
+  console.log('\n# addCompanyNotes: failures never cost the submission')
+
+  {
+    const ex = extraction()
+    const calls: string[] = []
+    const out = await quiet(() =>
+      addCompanyNotes(ex, {
+        lookup: async () => {
+          throw new Error('callback unreachable')
+        },
+        describe: async (n) => (calls.push(n), 'x'),
+      }),
+    )
+    check('lookup fails -> returned unchanged', out === ex)
+    check('lookup fails -> no search is spent on a guess', calls.length === 0, calls)
+  }
+
+  {
+    const { deps, calls } = fakeDeps([], { Acme: 'Acme text.' })
+    const partial: CompanyNotesDeps = { ...deps, lookup: async () => [] } // callback gave no verdict
+    const out = await quiet(() => addCompanyNotes(extraction(), partial))
+    check('no verdict for a name -> skipped, not assumed new', calls.describe.length === 0 && !('notes' in out.hiring_company), { calls, out: out.hiring_company })
+  }
+
+  {
+    const { deps } = fakeDeps([], {}) // describe returns ''
+    const out = await quiet(() => addCompanyNotes(extraction(), deps))
+    check('empty description -> no notes key at all (not an empty string)', !('notes' in out.hiring_company), out.hiring_company)
+  }
+
+  {
+    const ex = extraction()
+    const before = JSON.stringify(ex)
+    const { deps } = fakeDeps([], { Acme: 'Acme text.' })
+    await quiet(() => addCompanyNotes(ex, deps))
+    check('the input extraction is never mutated', JSON.stringify(ex) === before)
+  }
+
+  {
+    const out = await quiet(() =>
+      addCompanyNotes(extraction(), {
+        lookup: async (names) => names.map((name) => ({ name, exists: false })),
+        describe: async () => {
+          throw new Error('model down')
+        },
+      }),
+    )
+    check('describe throws -> returned unchanged', !('notes' in out.hiring_company), out.hiring_company)
+  }
+}
+
+async function scenarioLookupClient() {
+  console.log('\n# lookupCompanies: request and response handling (stubbed fetch)')
+  const realFetch = globalThis.fetch
+  let seen: { url: string; auth: string | undefined } = { url: '', auth: undefined }
+  const stub = (status: number, body: unknown) => {
+    globalThis.fetch = (async (url: string | URL | Request, init?: RequestInit) => {
+      seen = { url: String(url), auth: (init?.headers as Record<string, string> | undefined)?.authorization }
+      return new Response(typeof body === 'string' ? body : JSON.stringify(body), { status })
+    }) as typeof fetch
+  }
+  const cfg = { baseUrl: 'https://callback.example', token: 'cbk_test' }
+  try {
+    stub(200, {
+      results: [
+        { name: 'AT&T Inc', exists: true, match: { id: 1, label: 'AT&T', score: 0.7 } },
+        { name: 'Acme', exists: false, match: null },
+        { nonsense: true },
+        { name: 'No verdict' },
+      ],
+    })
+    const got = await lookupCompanies(cfg, ['AT&T Inc', 'Acme'])
+    const params = new URL(seen.url).searchParams
+    check('calls GET /api/companies on the configured base URL', seen.url.startsWith('https://callback.example/api/companies?'), seen.url)
+    check('repeats ?match= once per name, encoded', params.getAll('match').join('|') === 'AT&T Inc|Acme' && seen.url.includes('AT%26T'), seen.url)
+    check('sends the bearer token', seen.auth === 'Bearer cbk_test', seen.auth)
+    check('returns name + exists per result and drops malformed entries', JSON.stringify(got) === JSON.stringify([{ name: 'AT&T Inc', exists: true }, { name: 'Acme', exists: false }]), got)
+
+    stub(401, { error: 'invalid or missing bearer token' })
+    let threw = ''
+    try {
+      await lookupCompanies(cfg, ['Acme'])
+    } catch (err) {
+      threw = (err as Error).message
+    }
+    check('a non-2xx response throws (with the status)', threw.includes('401'), threw)
+  } finally {
+    globalThis.fetch = realFetch
+  }
+}
+
+await scenarioOrchestration()
+await scenarioFailures()
+await scenarioLookupClient()
+
+console.log(`\n${failures === 0 ? 'ALL PASS' : `${failures} FAILURE(S)`}`)
+process.exit(failures === 0 ? 0 : 1)

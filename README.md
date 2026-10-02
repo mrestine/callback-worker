@@ -137,10 +137,28 @@ docker compose logs -f worker
 `DRY_RUN=true` extracts and prints but never submits, relabels, or replies -
 useful for a first pass over a backlog.
 
+### Describing new companies (optional)
+
+With `SERPER_API_KEY` set (a free serper.dev key, no card needed), the worker
+asks callback which of an email's companies it doesn't have yet. For each new
+one it runs a web search and has the local model write two or three
+plain-fact sentences, sent as `hiring_company.notes`; callback stores them as
+the new company's notes when you accept the proposal. callback decides what
+counts as "new" (the same match it uses to link or create companies), so the
+worker keeps no threshold of its own, and an existing company's notes are
+never touched. Leave the key unset to turn the step off; it is also off in
+`DRY_RUN`.
+
+Try the pieces by hand: `npm run lookup-company -- "Name" --summarize`
+(`--context "applying for a ... role"` helps with common names). Checks:
+`npm run eval:company` (the summarizer, against canned search results) and
+`npm run test:company-notes` (the step's logic, no network or model needed).
+
 ### Failure modes
 
 | what breaks | what happens |
 |---|---|
 | model returns invalid JSON | message → `callback/error`; strip the label to retry |
 | callback unreachable | message stays in `callback/processing`; retried next poll |
+| company lookup, search or summary fails | the email is submitted anyway, without a description; the step never blocks a submission |
 | Gmail refresh token dead | loop logs `FATAL` and idles; re-run `gmail:auth`, restart. Set `HEALTHCHECK_URL` so a check service alerts you out-of-band. |

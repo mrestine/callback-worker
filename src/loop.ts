@@ -1,7 +1,7 @@
 /**
  * One poll cycle: for every outstanding Gmail message -
- *   claim (label processing) -> clean -> extract -> submit -> (disambiguate)
- *   -> digest reply -> label processed
+ *   claim (label processing) -> clean -> extract -> (describe new companies)
+ *   -> submit -> (disambiguate) -> digest reply -> label processed
  *
  * Failure handling:
  *  - model can't produce valid JSON  -> label `error` (operator strips it to retry)
@@ -13,7 +13,8 @@ import { clean } from './clean.js'
 import { runExtraction } from './extractor.js'
 import { writeDebugLog } from './debuglog.js'
 import type { ModelConfig } from './model.js'
-import type { Normalized, Extraction } from './schemas.js'
+import type { Normalized } from './schemas.js'
+import { addCompanyNotes, type CompanyNotesDeps, type OutgoingExtraction } from './companyNotes.js'
 import {
   GmailAuthError,
   getMessage,
@@ -44,9 +45,11 @@ export interface LoopConfig {
   notifyReply: boolean
   notifyOnDismiss: boolean
   dryRun: boolean
+  /** omitted = companies are submitted without descriptions */
+  companyNotes?: CompanyNotesDeps
 }
 
-function buildBody(gmailId: string, n: Normalized, ex: Extraction): InboundBody {
+function buildBody(gmailId: string, n: Normalized, ex: OutgoingExtraction): InboundBody {
   const summary = (ex.notes || ex.event.summary || '').trim().slice(0, 4000)
   return {
     external_ref: gmailId,
@@ -91,7 +94,8 @@ export async function runCycle(c: LoopConfig): Promise<{ processed: number; erro
         continue
       }
       const ex = outcome.extraction
-      const body = buildBody(id, n, ex)
+      const outgoing = c.companyNotes ? await addCompanyNotes(ex, c.companyNotes) : ex
+      const body = buildBody(id, n, outgoing)
 
       if (c.dryRun) {
         console.log(`[loop] DRY ${id} ${ex.email_kind} · ${body.summary ?? ''}`)

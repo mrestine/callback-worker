@@ -7,7 +7,7 @@
  * message in `callback/processing` for the next poll - callback dedups on
  * (source, external_ref), so a re-send is a no-op.
  */
-import type { Extraction } from './schemas.js'
+import type { OutgoingExtraction } from './companyNotes.js'
 
 export class SubmitTransportError extends Error {
   constructor(message: string) {
@@ -35,7 +35,7 @@ export interface InboundBody {
   occurred_at: string | null
   summary: string | null
   thread_key: string | null
-  extracted: Extraction
+  extracted: OutgoingExtraction
 }
 
 export interface ProposalOp {
@@ -94,6 +94,36 @@ export function chooseInbound(
   choice: Record<string, number>,
 ): Promise<{ status: string; proposal: ProposalOp[] }> {
   return post(cfg, `/api/inbound/resolve?id=${id}`, { action: 'choose', choice })
+}
+
+const LOOKUP_TIMEOUT_MS = 10_000
+
+export interface CompanyLookup {
+  name: string
+  exists: boolean
+}
+
+/**
+ * Which of these company names does callback already have? callback decides
+ * (`exists` is the same verdict its own inbound matching acts on), so the
+ * worker holds no threshold of its own. One attempt with a timeout and no
+ * retries, unlike post(): this only decorates a submission, and the submit
+ * that follows has its own retry and backoff. Throws on any failure.
+ */
+export async function lookupCompanies(cfg: ApiConfig, names: string[]): Promise<CompanyLookup[]> {
+  const qs = new URLSearchParams()
+  for (const n of names) qs.append('match', n)
+  const res = await fetch(`${cfg.baseUrl}/api/companies?${qs}`, {
+    headers: { authorization: `Bearer ${cfg.token}` },
+    signal: AbortSignal.timeout(LOOKUP_TIMEOUT_MS),
+  })
+  if (!res.ok) {
+    throw new Error(`callback ${res.status} on /api/companies: ${await res.text().catch(() => '')}`)
+  }
+  const data = (await res.json()) as { results?: { name?: unknown; exists?: unknown }[] }
+  return (data.results ?? []).flatMap((r) =>
+    typeof r.name === 'string' && typeof r.exists === 'boolean' ? [{ name: r.name, exists: r.exists }] : [],
+  )
 }
 
 /** callback's review_url ends with the numeric inbound_actions id. */

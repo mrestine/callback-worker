@@ -10,7 +10,9 @@
  * going quiet is the out-of-band alert.
  */
 import { modelConfigFromEnv } from './model.js'
-import { apiConfigFromEnv } from './submit.js'
+import { apiConfigFromEnv, lookupCompanies } from './submit.js'
+import { describeCompany } from './companySummary.js'
+import type { CompanyNotesDeps } from './companyNotes.js'
 import { GmailAuthError, ensureLabels, loadAuth } from './gmail.js'
 import { runCycle, type LoopConfig } from './loop.js'
 
@@ -56,6 +58,18 @@ async function main(): Promise<void> {
   })
   const labels = await ensureLabels(auth, labelPrefix)
 
+  // Describing new companies needs callback (to ask which are new) and a
+  // Serper key (to search). Without either it is off and nothing else changes;
+  // dry-run has no callback config, so it is off there too.
+  const serperKey = process.env.SERPER_API_KEY ?? ''
+  const companyNotes: CompanyNotesDeps | undefined =
+    !dryRun && serperKey
+      ? {
+          lookup: (names) => lookupCompanies(api, names),
+          describe: (name, context) => describeCompany(name, serperKey, model, context),
+        }
+      : undefined
+
   const cfg: LoopConfig = {
     auth,
     labels,
@@ -66,11 +80,12 @@ async function main(): Promise<void> {
     notifyReply,
     notifyOnDismiss,
     dryRun,
+    companyNotes,
   }
 
   console.log(
     `callback-worker up · model=${model.model} · poll ${intervalMs / 1000}s · ` +
-      `dryRun=${dryRun} · notifyReply=${notifyReply}`,
+      `dryRun=${dryRun} · notifyReply=${notifyReply} · companyNotes=${companyNotes ? 'on' : 'off'}`,
   )
 
   let fatal = false
