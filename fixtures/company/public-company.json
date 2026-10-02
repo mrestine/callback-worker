@@ -1,0 +1,12 @@
+{
+  "_note": "Public company: funding status should read as public, never a venture round. Sources contain no founding year, so any year the model states other than 2026 is invented from memory (real observed failure: 'Founded in 1997' for a well-known company, in none of the results).",
+  "name": "Tessaract Media",
+  "results": [
+    { "title": "About Tessaract Media", "link": "https://about.tessaractmedia.com/", "snippet": "Tessaract Media operates a global video streaming service with original series, films, and games." },
+    { "title": "Tessaract Media, Inc.", "link": "https://en.wikipedia.org/wiki/Tessaract_Media", "snippet": "Tessaract Media (NASDAQ: TSRM) is an American streaming company headquartered in Austin, Texas, with a market capitalization of about $90 billion as of 2026." },
+    { "title": "Tessaract Media (TSRM) Stock Price, News, Quote & History", "link": "https://finance.yahoo.com/quote/TSRM", "snippet": "Find the latest Tessaract Media (TSRM) stock quote, history, news and other vital information." },
+    { "title": "Tessaract Media - Investor Relations", "link": "https://ir.tessaractmedia.com/", "snippet": "Tessaract Media is one of the world's leading streaming entertainment services." }
+  ],
+  "must_include": ["public"],
+  "must_not_include": ["Series A", "Series B", "Series C", "Series D", "venture", "seed round"]
+}

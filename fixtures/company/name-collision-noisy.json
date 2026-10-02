@@ -1,0 +1,14 @@
+{
+  "_note": "Faithful to the real observed failure (names changed): six results where the unrelated 1956 electrical supplier sits at position 2 under a bare one-word title, the software company's own snippets are vague, and two results are neutral noise (a forum thread, an analyst-review page). The model blended the two companies and wrote 'Founded in 1956'.",
+  "name": "Brightwell",
+  "results": [
+    { "title": "Brightwell: All-in-one Recruiting Software for Ambitious Teams", "link": "https://www.brightwellhq.com/", "snippet": "Brightwell's all-in-one recruiting software consolidates your ATS, Analytics, Scheduling, and CRM." },
+    { "title": "Brightwell", "link": "https://www.brightwellco.com/", "snippet": "Since 1956, Brightwell has delivered innovative electrical solutions through specialized sales teams and partnerships with market-leading manufacturers." },
+    { "title": "Brightwell", "link": "https://www.linkedin.com/company/brightwellhq", "snippet": "Brightwell helps scaling companies achieve their ambitious growth targets. With Brightwell, teams of all sizes can run a fast and efficient hiring process." },
+    { "title": "Brightwell: All-in-one recruiting platform that empowers hiring ...", "link": "https://www.ycombinator.com/companies/brightwell", "snippet": "Brightwell is a new take on recruiting software - optimized for ambitious, operationally minded hiring teams. You can think of it as a bundle of an ATS, a sourcing ..." },
+    { "title": "What's brightwellhq? : r/jobsearch", "link": "https://www.reddit.com/r/jobsearch/comments/abc123/whats_brightwellhq/", "snippet": "I have been using the tool and I see that the jobs lead to brightwellhq domain. I was wondering what that is? Is it like the platforms upload tool? And should ..." },
+    { "title": "Brightwell - Crunchbase Company Profile & Funding", "link": "https://www.crunchbase.com/organization/brightwell", "snippet": "Brightwell develops human resource software to assist companies with hiring and manpower management. Brightwell operates as a developer of recruitment software used for ..." }
+  ],
+  "must_include": ["recruit"],
+  "must_not_include": ["1956", "electrical"]
+}

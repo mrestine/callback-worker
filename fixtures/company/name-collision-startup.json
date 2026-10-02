@@ -1,0 +1,15 @@
+{
+  "_note": "Modeled on a real live case (names changed): a tiny additive-manufacturing company shares its name with an unrelated supplement-news site. With a software-engineering context the model still wrote 'operating since at least 2019', a year in none of the results.",
+  "name": "Voxelforge",
+  "context": "applying for a software engineering role",
+  "results": [
+    { "title": "Voxelforge Digital Manufacturing LLC", "link": "https://www.linkedin.com/company/voxelforge", "snippet": "Voxelforge develops and manufactures custom filaments and pellets in-house, tuned for stiffness, impact resistance, thermal performance, recycled content, or color ..." },
+    { "title": "Voxelforge - Supplement News and Reviews", "link": "https://www.voxelforge.com/", "snippet": "The premier source for supplement news, real reviews, live event coverage and giveaways." },
+    { "title": "Voxelforge Digital Manufacturing: Home", "link": "https://www.voxelforgedm.com/", "snippet": "Voxelforge brings material development, SLS, FDM, and Large Format Additive Manufacturing together under one roof, so your engineering team spends less time ..." },
+    { "title": "Contact", "link": "https://www.voxelforge.com/contact", "snippet": "Get in contact with Voxelforge about any news tips, brands you'd like to see featured, supplements reviewed, questions, and website bugs." },
+    { "title": "Voxelforge - The largest database of additive ...", "link": "https://directory.additivemanufacturing.example/voxelforge", "snippet": "Voxelforge delivers comprehensive 3D printing solutions that cover every stage of the product lifecycle, from early-stage development and prototyping to bridge ..." },
+    { "title": "Voxelforge Digital Manufacturing LLC | River Falls WI", "link": "https://www.facebook.com/voxelforgedm", "snippet": "We offer comprehensive 3D printing services to meet your product development, prototyping, bridge production and small-volume production needs. Business ..." }
+  ],
+  "must_include_any": ["3D", "additive manufacturing"],
+  "must_not_include": ["supplement"]
+}

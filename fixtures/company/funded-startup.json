@@ -1,0 +1,11 @@
+{
+  "_note": "Everything we want is present: industry, founding year, size, funding round and recency. Checks the facts actually get used. Profitability is not stated and must not be invented.",
+  "name": "Lumenroot",
+  "results": [
+    { "title": "Lumenroot | Grid analytics for utilities", "link": "https://www.lumenroot.com/", "snippet": "Lumenroot provides a climate-data platform that helps electric utilities forecast demand and plan grid upgrades." },
+    { "title": "Lumenroot - Crunchbase Company Profile & Funding", "link": "https://www.crunchbase.com/organization/lumenroot", "snippet": "Lumenroot was founded in 2021. Last funding round: Series B, $40M, 2024." },
+    { "title": "Lumenroot | LinkedIn", "link": "https://www.linkedin.com/company/lumenroot", "snippet": "Lumenroot | 101-250 employees | Software Development | Boston, MA" }
+  ],
+  "must_include": ["Series B", "2024"],
+  "must_not_include": ["profitable", "profit"]
+}

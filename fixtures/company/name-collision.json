@@ -1,0 +1,13 @@
+{
+  "_note": "Two unrelated companies share a name. Mirrors a real observed failure: the model blended a recruiting-software company with an unrelated older electrical supplier ('Since 1956') into one description. Most results agree on the software company; the electrical one is the outlier and must not leak in.",
+  "name": "Brightwell",
+  "results": [
+    { "title": "Brightwell: Hiring Software for Growing Teams", "link": "https://www.brightwell.io/", "snippet": "Brightwell's recruiting platform combines applicant tracking, scheduling, and analytics for hiring teams." },
+    { "title": "Brightwell", "link": "https://www.brightwellelectric.com/", "snippet": "Since 1956, Brightwell has supplied electrical components to contractors across the Midwest through regional sales offices." },
+    { "title": "Brightwell | LinkedIn", "link": "https://www.linkedin.com/company/brightwell", "snippet": "Brightwell builds recruiting software for scaling companies. 201-500 employees." },
+    { "title": "Brightwell - Crunchbase Company Profile & Funding", "link": "https://www.crunchbase.com/organization/brightwell", "snippet": "Brightwell develops recruiting software. Founded in 2018. Last funding round: Series C, $60M, 2023." },
+    { "title": "Brightwell raises $60M Series C", "link": "https://techcrunch.com/2023/05/brightwell-series-c", "snippet": "Brightwell, the recruiting software company, raised a $60M Series C in 2023 to expand its analytics products." }
+  ],
+  "must_include": ["recruit"],
+  "must_not_include": ["1956", "electrical", "contractor"]
+}

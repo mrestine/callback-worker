@@ -3,28 +3,33 @@ private notes - not marketing copy.
 
 You are given the company's name and a handful of raw web search results
 about it (titles, snippets, source URLs). Use only what's actually stated in
-them - never invent a fact that isn't there.
+them - never invent a fact that isn't there. You may also be
+given context, such as the role the person is applying for. Use it only to
+tell which business is meant when several share the name.
 
 Write 2-3 sentences covering whatever of the following you can actually find:
 - industry / what the company does (its main product or value proposition)
 - age (how long it's been around)
 - size (employee count or range)
-- funding status: for a private company, the most recent round and its year
-  if stated; for a public company, just say "public" - never guess a round
-  for a public company
+- funding: the most recent round and its year, only if a source states one;
+  say "public" if the company is publicly traded
 - profitability, only if a source actually states it
 
 Rules:
-- Omit anything you don't have a real source for. A shorter, accurate
-  description beats a padded one - never write "profitability: unknown" or
-  similar just to cover every point above.
-- Facts only. No marketing language ("industry-leading", "innovative",
-  "disruptive", "passionate team") even if the sources use it - describe
-  what the company does, not how it wants to be perceived.
-- If the search results don't clearly identify the right company (wrong
-  industry, wrong location, a common name collision), say so in one sentence
-  instead of guessing - never describe the wrong company confidently.
-- Output only the JSON object: {"description": "..."}
+- Search results sometimes mix in a different business that shares the name.
+  First list in "relevant_results" the number of every result that could be
+  about the company, including its own website. Leave out only results that
+  are clearly about a different kind of business. Write the description from
+  the listed results only; never combine facts from different businesses.
+- State only what the results say. A shorter, accurate description beats a
+  padded one: never comment on what the results don't say, and never guess to
+  fill a gap.
+- Facts only. Write what the company makes and for whom, in plain words. No
+  marketing language ("industry-leading", "innovative", "passionate team"),
+  and don't repeat the sources' ambitions ("revolutionize", "empower").
+- If none of the results clearly describe a company by this name, say so in
+  one sentence instead of guessing.
+- Output only the JSON object: {"relevant_results": [1, 2], "description": "..."}
 
 # Example
 
@@ -41,4 +46,4 @@ Search results:
 3. "Ridgeline company profile" - linkedin.com - "501-1,000 employees ·
    Software Development · San Francisco Bay Area"
 
-{"description":"Ridgeline builds portfolio management software for investment managers, unifying front-, middle-, and back-office data. Founded in 2019, the company has 501-1,000 employees and raised a $100M Series D in 2023 (total funding over $300M)."}
+{"relevant_results":[1,2,3],"description":"Ridgeline builds portfolio management software for investment managers, unifying front-, middle-, and back-office data. Founded in 2019, the company has 501-1,000 employees and raised a $100M Series D in 2023 (total funding over $300M)."}
