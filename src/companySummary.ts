@@ -153,16 +153,25 @@ export function composeNotes(
 ): string {
   const haystack = sources.map((r) => `${r.title} ${r.snippet}`).join(' ')
   const sentence = dropMissingInfoCommentary(dropUngroundedSentences(f.description.trim(), sources))
+  const numbersOk = (v: string) => (v.match(NUMBER) ?? []).every((n) => appearsIn(haystack, n))
   const line = (label: string, raw: string, ok: (v: string) => boolean): string => {
     const v = present(raw)
-    const numbersOk = (v.match(NUMBER) ?? []).every((n) => appearsIn(haystack, n))
-    return v && ok(v) && numbersOk ? `${label}: ${v}` : ''
+    return v && ok(v) && numbersOk(v) ? `${label}: ${v}` : ''
+  }
+  // Funding is "Series B, $20M, 2023": a made-up year must not take the round
+  // and amount down with it, so check each part and keep the grounded ones.
+  // Without an amount, a bare year says nothing, so only the wordy parts stay
+  // ("public, 2026" -> "public").
+  const funding = (raw: string): string => {
+    const kept = present(raw).split(',').map((p) => p.trim()).filter((p) => p && numbersOk(p))
+    const shown = kept.some((p) => /[$€£]/.test(p)) ? kept : kept.filter((p) => !/\d/.test(p))
+    return shown.length > 0 ? `Funding: ${shown.join(', ')}` : ''
   }
   return [
     sentence,
     line('Founded', f.founded, (v) => /^\d{4}$/.test(v)),
     line('Employees', f.headcount, (v) => /\d/.test(v)),
-    line('Funding', f.latest_funding, () => true),
+    funding(f.latest_funding),
   ]
     .filter(Boolean)
     .join('\n')

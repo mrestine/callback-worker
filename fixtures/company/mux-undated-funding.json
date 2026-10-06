@@ -1,0 +1,57 @@
+{
+  "_note": "Modeled on real search results (Mux). The Series B and amount are stated but undated, so no year may be invented for it. A separate source gives a historical total. 'Employee Profiles' on Crunchbase is a profile count, not headcount (not pinned, a known weakness).",
+  "name": "Mux",
+  "results": [
+    {
+      "title": "Mux (company)",
+      "link": "https://en.wikipedia.org/wiki/Mux_(company)",
+      "snippet": "Mux is a video technology company headquartered in San Francisco, California. [1] Mux focuses on video streaming infrastructure software and video performance ..."
+    },
+    {
+      "title": "Mux - Crunchbase Company Profile & Funding",
+      "link": "https://www.crunchbase.com/organization/mux",
+      "snippet": "Matt McClure: Co-Founder. Adam Brown: Co-founder, Adam Brown, Jon Dahl, Matt McClure, Steve Heffernan … 134 Employee Profiles. Mux has 32 investors including ..."
+    },
+    {
+      "title": "Mux: Video API for developers",
+      "link": "https://www.mux.com/",
+      "snippet": "Mux helps teams ship high-performance and cost-effective video in minutes, not months. Build better video into anything from websites to platforms to AI ..."
+    },
+    {
+      "title": "What's coming at Mux",
+      "link": "https://www.mux.com/blog/whats-coming-at-mux",
+      "snippet": "Mux announced this morning that we've raised $20M in Series B funding from Evolution, Accel, Y Combinator, and others. answer is hiring."
+    },
+    {
+      "title": "Mux",
+      "link": "https://www.linkedin.com/company/muxinc",
+      "snippet": "Mux is video infrastructure that makes it easy for developers to build video into their products, and do so quickly, reliably, and at global scale."
+    },
+    {
+      "title": "The Best Team in Video Tech",
+      "link": "https://www.mux.com/about",
+      "snippet": "Mux was founded in 2015 by Jon Dahl, Steve Heffernan, Matt McClure, and Adam Brown, four engineers and veterans of online video who are passionate about video ..."
+    },
+    {
+      "title": "Mux: Video infrastructure for developers",
+      "link": "https://www.ycombinator.com/companies/mux",
+      "snippet": "Mux is an API-first video platform designed by experts to make world-class video streaming and analytics possible for every development team."
+    },
+    {
+      "title": "Mux's Competitors, Revenue, Number of Employees ...",
+      "link": "https://www.owler.com/company/mux",
+      "snippet": "Mux was founded in 2015. Funding View Mux funding details. Mux was founded in 2015. Mux has historically raised $176.8M in funding"
+    }
+  ],
+  "must_include": [
+    "2015"
+  ],
+  "must_include_any": [
+    "Series B",
+    "176.8"
+  ],
+  "must_not_include": [
+    "2023"
+  ],
+  "hq_includes": "San Francisco"
+}
