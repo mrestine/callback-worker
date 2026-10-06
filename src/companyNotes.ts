@@ -79,6 +79,13 @@ async function attach(ex: Extraction, deps: CompanyNotesDeps): Promise<OutgoingE
     if (!name || company.withheld || !isNew.has(key(name)) || profiles.has(key(name))) continue
     const context = role.title ? `applying for a ${role.title} role` : undefined
     const found = await deps.describe(name, context)
+    if (found.raw) {
+      const r = found.raw
+      console.log(
+        `[companyNotes] "${name}": model said founded=${JSON.stringify(r.founded)} headcount=${JSON.stringify(r.headcount)} ` +
+          `funding=${JSON.stringify(r.latest_funding)} hq=${JSON.stringify(r.hq_location)} (same business: ${r.sameBusiness})`,
+      )
+    }
     const profile = { description: found.description.trim(), hq_location: found.hq_location.trim() }
     profiles.set(key(name), profile)
     console.log(

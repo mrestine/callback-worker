@@ -42,6 +42,9 @@ const summary = z
 export interface CompanyProfile {
   description: string
   hq_location: string
+  /** What the model said before the guards ran, kept for the worker log so a
+   *  missing line can be traced to the model or to a guard. */
+  raw?: { founded: string; headcount: string; latest_funding: string; hq_location: string; sameBusiness: string }
 }
 const NOTHING: CompanyProfile = { description: '', hq_location: '' }
 const summaryJsonSchema = zodToJsonSchema(summary, { $refStrategy: 'none', target: 'jsonSchema7' })
@@ -133,6 +136,9 @@ export function groundedLocation(location: string, sources: SearchResult[]): str
 const EMPTY_VALUE = /^(?:not (?:specified|stated|available|provided|disclosed|mentioned)|unspecified|unknown|n\/a|none)\b/i
 const present = (v: string): string => (EMPTY_VALUE.test(v.trim()) ? '' : v.trim())
 
+/** A source stating the company is listed. Narrow on purpose: a bare "public" turns up in plenty of other contexts. */
+const PUBLIC_COMPANY = /\b(?:is|as) an? (?:\w+ )?public company\b|\bpublicly[- ](?:traded|listed)\b|\b(?:NASDAQ|NYSE)\s*:/i
+
 /**
  * The notes text: one sentence on what the company does, then one labeled line
  * per fact the model filled in, so each fact stands alone and is checked on its
@@ -163,6 +169,8 @@ export function composeNotes(
   // Without an amount, a bare year says nothing, so only the wordy parts stay
   // ("public, 2026" -> "public").
   const funding = (raw: string): string => {
+    // a source saying so beats the model's pick of a (possibly very old) round
+    if (PUBLIC_COMPANY.test(haystack)) return 'Funding: public'
     const kept = present(raw).split(',').map((p) => p.trim()).filter((p) => p && numbersOk(p))
     const shown = kept.some((p) => /[$€£]/.test(p)) ? kept : kept.filter((p) => !/\d/.test(p))
     return shown.length > 0 ? `Funding: ${shown.join(', ')}` : ''
@@ -238,6 +246,13 @@ export async function summarizeCompany(
   return {
     description: composeNotes(facts, basis),
     hq_location: groundedLocation(present(facts.hq_location), basis),
+    raw: {
+      founded: facts.founded,
+      headcount: facts.headcount,
+      latest_funding: facts.latest_funding,
+      hq_location: facts.hq_location,
+      sameBusiness: `${basis === kept ? kept.length : keptIdx.size}/${top.length}`,
+    },
   }
 }
 

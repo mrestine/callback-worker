@@ -1,0 +1,47 @@
+{
+  "_note": "Modeled on real search results (Pinterest). A snippet states the company is public, so Funding must say so rather than naming an old private round. No source gives a headcount (the '41' is a competitor count), so none may be invented.",
+  "name": "Pinterest",
+  "results": [
+    {
+      "title": "Company | Pinterest Newsroom",
+      "link": "https://newsroom.pinterest.com/en/company",
+      "snippet": "Pinterest is a visual search and discovery platform where people find inspiration, curate ideas and shop products—all in a positive place online."
+    },
+    {
+      "title": "Pinterest - 2026 Company Profile, Team, Funding, Competitors ...",
+      "link": "https://tracxn.com/d/companies/pinterest",
+      "snippet": "Pinterest is a public company based in San Francisco (United States), founded in 2010 by Paul Sciarra, Ben Silbermann, Kristen Scully, Julian Lewis Ii and Lindsay Whittemore. It operates as a Visual discovery and planning website. Pinterest has raised $1.47B in funding from investors like Fidelity Investments, Emerson Collective and SharesPost. The company has 41 active competitors, including ..."
+    },
+    {
+      "title": "Pinterest",
+      "link": "https://www.pinterest.com/",
+      "snippet": "Discover recipes, home ideas, style inspiration and other ideas to try. you can unlock tools that spark your creativity and help you find more inspiration. ..."
+    },
+    {
+      "title": "Pinterest: Funding, Team & Investors | Startup Intros",
+      "link": "https://startupintros.com/orgs/pinterest",
+      "snippet": "Who founded Pinterest? Pinterest was founded in 2010 by Evan Sharp (Founder) and Paul Sciarra (Founder). How much funding has Pinterest raised? Pinterest has raised $1.7B in total across 12 funding rounds. Who are Pinterest's investors? Pinterest's investors include Sinai Ventures, Andreessen Horowitz, Atomic, Bessemer Venture Partners, BoxGroup, Jenny Fielding, Scott Hartley, FirstMark ..."
+    },
+    {
+      "title": "Pinterest",
+      "link": "https://en.wikipedia.org/wiki/Pinterest",
+      "snippet": "Pinterest is an American social media service for publishing and discovery of information in the form of digital pinboards. This includes recipes, home, ..."
+    },
+    {
+      "title": "Pinterest - Products, Competitors, Financials, Employees ...",
+      "link": "https://www.cbinsights.com/company/pinterest",
+      "snippet": "Pinterest Frequently Asked Questions (FAQ) When was Pinterest founded? Pinterest was founded in 2010. Where is Pinterest's headquarters? Pinterest's headquarters is located at 651 Brannan Street, San Francisco. What is Pinterest's latest funding round? Pinterest's latest funding round is PIPE. How much did Pinterest raise? Pinterest raised a total of $1.466B. Who are the investors of Pinterest ..."
+    }
+  ],
+  "must_include": [
+    "2010"
+  ],
+  "must_include_any": [
+    "Funding: public"
+  ],
+  "must_not_include": [
+    "41,000",
+    "Employees:"
+  ],
+  "hq_includes": "San Francisco"
+}
