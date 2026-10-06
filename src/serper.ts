@@ -21,7 +21,7 @@ export class SerperError extends Error {}
  * nothing about age, size or funding; those live on other sites (Crunchbase,
  * LinkedIn, Forbes, BuiltIn...) and only surface for a query that asks for them.
  */
-const queriesFor = (name: string) => [`${name} company`, `${name} funding employees founded`]
+const queriesFor = (name: string) => [`${name} company`, `${name} headquarters funding employees founded`]
 
 async function search(q: string, apiKey: string): Promise<SearchResult[]> {
   const res = await fetch('https://google.serper.dev/search', {

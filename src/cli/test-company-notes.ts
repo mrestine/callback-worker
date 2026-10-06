@@ -10,6 +10,7 @@ import { addCompanyNotes } from '../companyNotes.js'
 import type { CompanyNotesDeps, OutgoingExtraction } from '../companyNotes.js'
 import type { Extraction } from '../schemas.js'
 import { renderDigest } from '../notify.js'
+import { composeNotes, groundedLocation } from '../companySummary.js'
 import { mergeResults, searchCompany } from '../serper.js'
 import { lookupCompanies } from '../submit.js'
 
@@ -55,7 +56,7 @@ function extraction(over: Partial<Extraction> = {}): Extraction {
 }
 
 /** Fake deps that record every call. `existing` = names callback already has. */
-function fakeDeps(existing: string[], descriptions: Record<string, string> = {}) {
+function fakeDeps(existing: string[], descriptions: Record<string, string> = {}, hqs: Record<string, string> = {}) {
   const calls = { lookup: [] as string[][], describe: [] as [string, string | undefined][] }
   const deps: CompanyNotesDeps = {
     async lookup(names) {
@@ -64,7 +65,7 @@ function fakeDeps(existing: string[], descriptions: Record<string, string> = {})
     },
     async describe(name, context) {
       calls.describe.push([name, context])
-      return descriptions[name] ?? ''
+      return { description: descriptions[name] ?? '', hq_location: hqs[name] ?? '' }
     },
   }
   return { deps, calls }
@@ -88,6 +89,21 @@ async function scenarioOrchestration() {
     check('new company -> described once', calls.describe.length === 1 && calls.describe[0][0] === 'Acme', calls)
     check('...with the role it is being considered for as context', calls.describe[0][1] === 'applying for a Staff Engineer role', calls)
     check('...and the description lands on hiring_company.notes', out.hiring_company.notes === 'Acme builds anvils.', out.hiring_company)
+  }
+
+  // the headquarters rides along as its own field
+  {
+    const ex = extraction({
+      hiring_company: company('Acme'),
+      additional_opportunities: [{ hiring_company: company('Globex'), role: { title: 'SRE', confidence: 0.9 } }],
+    })
+    const { deps } = fakeDeps([], { Acme: 'Acme text.', Globex: 'Globex text.' }, { Acme: 'Boston, MA' })
+    const out = await quiet(() => addCompanyNotes(ex, deps))
+    check('headquarters lands on hiring_company.hq_location', out.hiring_company.hq_location === 'Boston, MA', out.hiring_company)
+    check('a company with no headquarters gets no hq_location key', !('hq_location' in out.additional_opportunities[0].hiring_company), out.additional_opportunities[0].hiring_company)
+    const onlyHq = fakeDeps([], {}, { Acme: 'Boston, MA' })
+    const out2 = await quiet(() => addCompanyNotes(extraction(), onlyHq.deps))
+    check('a headquarters with no description still comes through', out2.hiring_company.hq_location === 'Boston, MA' && !('notes' in out2.hiring_company), out2.hiring_company)
   }
 
   // several companies: only the new one is described, each keeps its own notes
@@ -142,7 +158,7 @@ async function scenarioFailures() {
         lookup: async () => {
           throw new Error('callback unreachable')
         },
-        describe: async (n) => (calls.push(n), 'x'),
+        describe: async (n) => (calls.push(n), { description: 'x', hq_location: '' }),
       }),
     )
     check('lookup fails -> returned unchanged', out === ex)
@@ -249,7 +265,7 @@ async function scenarioSearch() {
   try {
     stub((q) => organic(q.endsWith('company') ? 'about' : 'facts'))
     const got = await searchCompany('Acme', 'key123')
-    check('asks for what the company does AND for its facts', queries.includes('Acme company') && queries.includes('Acme funding employees founded'), queries)
+    check('asks for what the company does AND for its facts', queries.includes('Acme company') && queries.includes('Acme headquarters funding employees founded'), queries)
     check('sends the API key', keySent === 'key123', keySent)
     check('returns the merged results of both', got.map((x) => x.snippet).sort().join(',') === 'S about,S facts', got)
 
@@ -277,6 +293,43 @@ async function scenarioSearch() {
   } finally {
     globalThis.fetch = realFetch
   }
+}
+
+function scenarioComposeNotes() {
+  console.log(String.fromCharCode(10) + '# composeNotes: one sentence, then one labeled line per fact')
+  const NL = String.fromCharCode(10)
+  const src = (...snippets: string[]) => snippets.map((snippet, i) => ({ title: 'T' + i, link: 'https://x.example/' + i, snippet }))
+  const sources = src('Acme was founded in 2019 and has 201-500 employees.', 'Series B, $120M, 2025')
+  const f = { description: 'Acme makes anvils.', founded: '2019', headcount: '201-500', latest_funding: 'Series B, $120M, 2025' }
+
+  check('sentence, then Founded / Employees / Funding lines', composeNotes(f, sources) === ['Acme makes anvils.', 'Founded: 2019', 'Employees: 201-500', 'Funding: Series B, $120M, 2025'].join(NL), composeNotes(f, sources))
+  check('empty fields are left out', composeNotes({ ...f, founded: '', headcount: '' }, sources) === ['Acme makes anvils.', 'Funding: Series B, $120M, 2025'].join(NL))
+  check('"not specified" counts as empty', composeNotes({ ...f, founded: 'not specified', headcount: 'Unknown', latest_funding: 'N/A' }, sources) === 'Acme makes anvils.')
+  check('a number found in no source drops only its own line', composeNotes({ ...f, headcount: '50-620' }, sources) === ['Acme makes anvils.', 'Founded: 2019', 'Funding: Series B, $120M, 2025'].join(NL), composeNotes({ ...f, headcount: '50-620' }, sources))
+  check('a founding year must be a bare year', !composeNotes({ ...f, founded: 'around 2019' }, sources).includes('Founded'))
+  check('"public" is a fine value for Funding', composeNotes({ ...f, founded: '', headcount: '', latest_funding: 'public' }, sources) === ['Acme makes anvils.', 'Funding: public'].join(NL))
+  check('no sentence but facts -> the facts alone', composeNotes({ ...f, description: '' }, sources).startsWith('Founded: 2019'))
+  check('an ungrounded number in the sentence drops the sentence, not the lines', composeNotes({ ...f, description: 'Acme makes anvils for 9000 customers.' }, sources).startsWith('Founded: 2019'))
+}
+
+function scenarioHeadquarters() {
+  console.log('\n# groundedLocation: the headquarters must come from the sources')
+  const src = (...snippets: string[]) => snippets.map((snippet, i) => ({ title: 'T' + i, link: 'https://x.example/' + i, snippet }))
+  const boston = src('Lumenroot | 101-250 employees | Software Development | Boston, MA')
+  check('a location every word of which is in the sources is kept', groundedLocation('Boston, MA', boston) === 'Boston, MA')
+  check('matching ignores case', groundedLocation('BOSTON, ma', boston) === 'BOSTON, ma')
+  check('a city the sources never mention is dropped', groundedLocation('San Francisco, CA', boston) === '')
+  check('a state spelled out in place of the abbreviation is fine', groundedLocation('Boston, Massachusetts', boston) === 'Boston, Massachusetts')
+  check('a state added where the source has only the city is fine', groundedLocation('Boston, MA', src('Lumenroot is based in Boston')) === 'Boston, MA')
+  check('the city alone is fine', groundedLocation('Boston', boston) === 'Boston')
+  check('NYC in the sources lets New York through', groundedLocation('New York, NY', src('Acme | NYC office')) === 'New York, NY')
+  check('New York in the sources lets NYC through', groundedLocation('NYC', src('Acme is headquartered in New York')) === 'NYC')
+  check('a city that only shares a word with the sources is dropped', groundedLocation('San Francisco, CA', src('Acme, San Diego, CA')) === '')
+  check('a city is matched as a whole word, not inside another', groundedLocation('Austin', src('Austinville, VA')) === '')
+  check('a real city with a wrong state is not second-guessed', groundedLocation('Boston, NY', boston) === 'Boston, NY')
+  check('empty and whitespace -> empty', groundedLocation('', boston) === '' && groundedLocation('   ', boston) === '')
+  check('a multi-line or very long value is dropped', groundedLocation('Boston, MA' + String.fromCharCode(10) + 'USA', boston) === '' && groundedLocation('Boston '.repeat(20), boston) === '')
+  check('accented place names are matched', groundedLocation('Zurich', src('based in Zurich, Switzerland')) === 'Zurich' && groundedLocation('Zürich', src('based in Zürich')) === 'Zürich')
 }
 
 async function scenarioDigest() {
@@ -321,6 +374,8 @@ await scenarioOrchestration()
 await scenarioFailures()
 await scenarioLookupClient()
 await scenarioSearch()
+scenarioComposeNotes()
+scenarioHeadquarters()
 await scenarioDigest()
 
 console.log(`\n${failures === 0 ? 'ALL PASS' : `${failures} FAILURE(S)`}`)

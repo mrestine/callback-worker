@@ -1,0 +1,30 @@
+{
+  "_note": "Older source has Series A and the headcount; newer source has Series B and no headcount. Both facts belong.",
+  "name": "Halvorsen Labs",
+  "results": [
+    {
+      "title": "Halvorsen Labs | Lab automation software",
+      "link": "https://www.halvorsenlabs.com/",
+      "snippet": "Halvorsen Labs builds scheduling and sample-tracking software for clinical laboratories."
+    },
+    {
+      "title": "Halvorsen Labs raises $50M Series A",
+      "link": "https://www.crunchbase.com/organization/halvorsen-labs",
+      "snippet": "Jan 2022 - Halvorsen Labs, a team of 50 employees, announced a $50M Series A led by Northwind Ventures."
+    },
+    {
+      "title": "Halvorsen Labs closes $120M Series B",
+      "link": "https://www.businesswire.com/news/halvorsen-series-b",
+      "snippet": "Mar 2025 - Halvorsen Labs today announced a $120M Series B round to expand its clinical lab customer base."
+    }
+  ],
+  "must_include": [
+    "Series B"
+  ],
+  "must_not_include": [
+    "Series A"
+  ],
+  "must_include_any": [
+    "Employees: 50"
+  ]
+}

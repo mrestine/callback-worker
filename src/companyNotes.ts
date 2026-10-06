@@ -17,12 +17,13 @@
  * Best-effort end to end. Any failure leaves the extraction exactly as it was;
  * a missing description must never cost a submission.
  */
+import type { CompanyProfile } from './companySummary.js'
 import type { Extraction } from './schemas.js'
 
 type Company = Extraction['hiring_company']
 type Opportunity = Extraction['additional_opportunities'][number]
 
-export type OutgoingCompany = Company & { notes?: string }
+export type OutgoingCompany = Company & { notes?: string; hq_location?: string }
 
 /** What is POSTed to callback: an Extraction whose companies may carry notes. */
 export type OutgoingExtraction = Omit<Extraction, 'hiring_company' | 'additional_opportunities'> & {
@@ -33,8 +34,8 @@ export type OutgoingExtraction = Omit<Extraction, 'hiring_company' | 'additional
 export interface CompanyNotesDeps {
   /** which of these names does callback already have */
   lookup(names: string[]): Promise<{ name: string; exists: boolean }[]>
-  /** a few plain sentences about a company ('' if none could be found) */
-  describe(name: string, context?: string): Promise<string>
+  /** a few plain sentences about a company and where it is headquartered ('' for whatever could not be found) */
+  describe(name: string, context?: string): Promise<CompanyProfile>
 }
 
 const key = (name: string) => name.trim().toLowerCase()
@@ -72,19 +73,28 @@ async function attach(ex: Extraction, deps: CompanyNotesDeps): Promise<OutgoingE
   }
 
   // describe each new company once, using the first role it appears with
-  const notes = new Map<string, string>()
+  const profiles = new Map<string, CompanyProfile>()
   for (const { company, role } of slots) {
     const name = company.name?.trim()
-    if (!name || company.withheld || !isNew.has(key(name)) || notes.has(key(name))) continue
+    if (!name || company.withheld || !isNew.has(key(name)) || profiles.has(key(name))) continue
     const context = role.title ? `applying for a ${role.title} role` : undefined
-    const text = (await deps.describe(name, context)).trim()
-    notes.set(key(name), text)
-    console.log(`[companyNotes] "${name}": new, ${text ? `described (${text.length} chars)` : 'no description found'}`)
+    const found = await deps.describe(name, context)
+    const profile = { description: found.description.trim(), hq_location: found.hq_location.trim() }
+    profiles.set(key(name), profile)
+    console.log(
+      `[companyNotes] "${name}": new, ${profile.description ? `described (${profile.description.length} chars)` : 'no description found'}, ` +
+        `hq ${profile.hq_location || 'not found'}`,
+    )
   }
 
   const withNotes = (c: Company): OutgoingCompany => {
-    const text = c.name && !c.withheld ? notes.get(key(c.name)) : undefined
-    return text ? { ...c, notes: text } : c
+    const p = c.name && !c.withheld ? profiles.get(key(c.name)) : undefined
+    if (!p) return c
+    return {
+      ...c,
+      ...(p.description ? { notes: p.description } : {}),
+      ...(p.hq_location ? { hq_location: p.hq_location } : {}),
+    }
   }
   return {
     ...ex,

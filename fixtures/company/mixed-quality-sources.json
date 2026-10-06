@@ -1,0 +1,38 @@
+{
+  "_note": "A random aggregator is stale and wrong on size and funding; LinkedIn, Crunchbase and the company site agree with each other. The better sources should win.",
+  "name": "Pinecrest Robotics",
+  "results": [
+    {
+      "title": "Pinecrest Robotics | Warehouse picking robots",
+      "link": "https://www.pinecrestrobotics.com/",
+      "snippet": "Pinecrest Robotics makes autonomous picking robots for warehouses. Founded in 2016."
+    },
+    {
+      "title": "Pinecrest Robotics | LinkedIn",
+      "link": "https://www.linkedin.com/company/pinecrest-robotics",
+      "snippet": "Pinecrest Robotics | 201-500 employees | Automation Machinery Manufacturing"
+    },
+    {
+      "title": "Pinecrest Robotics - Crunchbase Company Profile & Funding",
+      "link": "https://www.crunchbase.com/organization/pinecrest-robotics",
+      "snippet": "Last funding round: Series C, $80M, 2024. Founded 2016."
+    },
+    {
+      "title": "Pinecrest Robotics company info",
+      "link": "https://www.corpinfo-aggregator.example/pinecrest",
+      "snippet": "Pinecrest Robotics: 11-50 employees. Seed stage startup, last raised $2M in 2017."
+    }
+  ],
+  "must_include": [
+    "Series C"
+  ],
+  "must_not_include": [
+    "Seed",
+    "11-50",
+    "$2M"
+  ],
+  "must_include_any": [
+    "201-500",
+    "201 to 500"
+  ]
+}

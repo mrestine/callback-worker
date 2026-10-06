@@ -60,6 +60,52 @@ The tuning loop: `npm run batch -- fixtures/private`, eyeball the
 `*.extract.out.json` files against your expectations, edit
 `prompts/extract.system.md` or `src/clean.ts`, repeat.
 
+## Evals and tests
+
+Run these after any change to a prompt, a guard, or `src/clean.ts`. The two
+evals call the real local model; the test needs no model and no network.
+
+```sh
+npm run eval                  # extraction: fixtures/sample/*.eml vs *.expected.json
+npm run eval:company          # company summary: canned search results in fixtures/company
+npm run test:company-notes    # the new-company step's logic, offline (stubbed fetch)
+npm run typecheck
+```
+
+Both evals take a fixtures directory and `--model <tag>`, and exit non-zero if
+anything fails:
+
+```sh
+npm run eval -- fixtures/sample --model llama3.2:3b
+npm run eval:company -- fixtures/company --model llama3.2:3b
+```
+
+- **`eval`** runs each `.eml` through the same clean → extract → guards path as
+  production and diffs the result against its hand-written `.expected.json`.
+  Confidence scores and free-text fields (`event.summary`, `notes`) are not
+  compared; `occurred_at` is compared as an instant.
+- **`eval:company`** feeds saved search results to the summarizer and checks the
+  description: non-empty, at most 3 sentences, no buzzwords, no number that isn't
+  in the sources, plus per-fixture `must_include` / `must_not_include`. No Serper
+  calls, no cost.
+- **`test:company-notes`** covers the plumbing around the summarizer: which
+  companies get a lookup, failure handling, the callback lookup client, the
+  two-query search merge, and the digest reply.
+
+**Adding a fixture.** For extraction, drop `name.eml` in `fixtures/sample/` and
+write `name.expected.json` beside it (copy an existing one; start from the
+model's output and correct it by hand). For the summarizer, add a `name.json`
+to `fixtures/company/` with the company `name`, canned search `results`
+(`title`, `link`, `snippet`) and any `must_include`, `must_include_any` or
+`must_not_include` strings. A `_note` field in either kind documents what the
+case is testing and is ignored by the runner.
+
+Treat the evals as a regression net, not a score. Output is stable within a
+loaded model session but borderline fixtures can flip after Ollama reloads the
+model, so re-run a failure before assuming a regression.
+
+To try a single company by hand: `npm run lookup-company -- "Name" --summarize`.
+
 ## Container
 
 The worker runs as its own container. **Ollama runs separately** (its own
@@ -146,18 +192,22 @@ useful for a first pass over a backlog.
 With `SERPER_API_KEY` set (a free serper.dev key, no card needed), the worker
 asks callback which of an email's companies it doesn't have yet. For each new
 one it runs two web searches (what the company does, and its age, size and
-funding) and has the local model write two or three plain-fact sentences,
-sent as `hiring_company.notes`; callback stores them as the new company's
-notes when you accept the proposal. callback decides what
+funding, and where it is headquartered). In one model call it fills a few
+fields (what each result is about, founded, headcount, latest funding round,
+headquarters) and writes one plain sentence on what the company does. The
+sentence plus one labeled line per fact (`Founded: 2019`, `Employees:
+412-500`, `Funding: Series B, $120M, 2025`) is sent as `hiring_company.notes`;
+callback stores it as the new company's notes when you accept the proposal. The headquarters
+goes along as `hiring_company.hq_location` and prefills the new application's
+location. It is only kept if every word of it appears in the search results. callback decides what
 counts as "new" (the same match it uses to link or create companies), so the
 worker keeps no threshold of its own, and an existing company's notes are
 never touched. Leave the key unset to turn the step off; it is also off in
 `DRY_RUN`.
 
-Try the pieces by hand: `npm run lookup-company -- "Name" --summarize`
-(`--context "applying for a ... role"` helps with common names). Checks:
-`npm run eval:company` (the summarizer, against canned search results) and
-`npm run test:company-notes` (the step's logic, no network or model needed).
+Try it by hand with `npm run lookup-company -- "Name" --summarize`
+(`--context "applying for a ... role"` helps with common names). The checks
+for this step are under [Evals and tests](#evals-and-tests).
 
 ### Failure modes
 

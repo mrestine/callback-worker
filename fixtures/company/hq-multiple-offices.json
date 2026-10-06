@@ -1,0 +1,22 @@
+{
+  "_note": "The headquarters is stated in prose and other offices are mentioned. Only the headquarters should come back, not Remote or the other offices.",
+  "name": "Tessaly",
+  "results": [
+    {
+      "title": "Tessaly | Payroll for distributed teams",
+      "link": "https://www.tessaly.com/",
+      "snippet": "Tessaly builds payroll and compliance software for companies with remote employees in many countries."
+    },
+    {
+      "title": "About Tessaly",
+      "link": "https://www.tessaly.com/about",
+      "snippet": "Tessaly is headquartered in Austin, TX, with additional offices in London and Singapore."
+    },
+    {
+      "title": "Tessaly | LinkedIn",
+      "link": "https://www.linkedin.com/company/tessaly",
+      "snippet": "Tessaly | 201-500 employees | Software Development"
+    }
+  ],
+  "hq_includes": "Austin"
+}

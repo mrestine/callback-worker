@@ -20,6 +20,7 @@
 import { readFile, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { summarizeCompany } from '../companySummary.js'
+import type { CompanyProfile } from '../companySummary.js'
 import { modelConfigFromEnv } from '../model.js'
 import type { SearchResult } from '../serper.js'
 import { flag, positionalArg } from './io.js'
@@ -33,6 +34,10 @@ interface Fixture {
   must_include?: string[]
   must_include_any?: string[]
   must_not_include?: string[]
+  /** the headquarters must contain this (case-insensitive) */
+  hq_includes?: string
+  /** no source states a headquarters, so none may be returned */
+  hq_empty?: boolean
   context?: string
 }
 
@@ -43,13 +48,18 @@ const BUZZWORDS =
 const MISSING_INFO =
   /not (?:provided|specified|available|stated|disclosed|mentioned)|no (?:specific )?(?:details|information)|unknown|unspecified|undisclosed/i
 
-function failures(fx: Fixture, description: string): string[] {
+function failures(fx: Fixture, { description, hq_location }: CompanyProfile): string[] {
   const out: string[] = []
   const lower = description.toLowerCase()
   const has = (s: string) => lower.includes(s.toLowerCase())
 
+  if (fx.hq_empty && hq_location) out.push(`headquarters "${hq_location}" is not stated in any result`)
+  if (fx.hq_includes && !hq_location.toLowerCase().includes(fx.hq_includes.toLowerCase())) {
+    out.push(`headquarters "${hq_location}" should include "${fx.hq_includes}"`)
+  }
+
   if (!description) {
-    return ['empty description']
+    return [...out, 'empty description']
   }
 
   const sentences = description.split(/(?<=[.!?])\s+/).filter(Boolean)
@@ -85,10 +95,11 @@ let failed = 0
 for (const f of files) {
   const fx = JSON.parse(await readFile(join(dir, f), 'utf8')) as Fixture
   const started = Date.now()
-  const description = await summarizeCompany(fx.name, fx.results, cfg, fx.context)
-  const bad = failures(fx, description)
+  const profile = await summarizeCompany(fx.name, fx.results, cfg, fx.context)
+  const { description, hq_location } = profile
+  const bad = failures(fx, profile)
   process.stdout.write(`\n# ${f.replace(/\.json$/, '')}  (${Date.now() - started}ms)\n`)
-  process.stdout.write(`  > ${description || '(empty)'}\n`)
+  process.stdout.write(`  > ${description || '(empty)'}\n  hq: ${hq_location || '(none)'}\n`)
   if (bad.length === 0) {
     process.stdout.write('  ok\n')
   } else {

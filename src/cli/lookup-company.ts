@@ -31,8 +31,9 @@ if (has('--summarize')) {
   console.log(`--- model input ---\n${renderSearchResults(name, results.slice(0, MAX_RESULTS), flag('--context'))}\n`)
   const cfg = modelConfigFromEnv({ model: flag('--model') })
   const started = Date.now()
-  const description = await summarizeCompany(name, results, cfg, flag('--context'))
+  const { description, hq_location } = await summarizeCompany(name, results, cfg, flag('--context'))
   console.log(`--- description (${cfg.model}, ${Date.now() - started}ms) ---\n${description || '(empty)'}`)
+  console.log(`--- headquarters ---\n${hq_location || '(none)'}`)
 } else {
   for (const [i, r] of results.entries()) {
     console.log(`${i + 1}. ${r.title}`)

@@ -3,10 +3,38 @@
   "name": "Ostrander",
   "context": "applying for a Senior Software Engineer role",
   "results": [
-    { "title": "Ostrander, Ohio - Wikipedia", "link": "https://en.wikipedia.org/wiki/Ostrander,_Ohio", "snippet": "Ostrander is a village in Delaware County, Ohio, United States." },
-    { "title": "Ostrander Family Farm", "link": "https://www.ostranderfarm.com/", "snippet": "A family-run farm offering seasonal produce and a pumpkin patch." },
-    { "title": "Ostrander Elementary School", "link": "https://www.ostranderelementary.example.edu/", "snippet": "Ostrander Elementary serves students in kindergarten through fifth grade." }
+    {
+      "title": "Ostrander, Ohio - Wikipedia",
+      "link": "https://en.wikipedia.org/wiki/Ostrander,_Ohio",
+      "snippet": "Ostrander is a village in Delaware County, Ohio, United States."
+    },
+    {
+      "title": "Ostrander Family Farm",
+      "link": "https://www.ostranderfarm.com/",
+      "snippet": "A family-run farm offering seasonal produce and a pumpkin patch."
+    },
+    {
+      "title": "Ostrander Elementary School",
+      "link": "https://www.ostranderelementary.example.edu/",
+      "snippet": "Ostrander Elementary serves students in kindergarten through fifth grade."
+    }
   ],
-  "must_include_any": ["unclear", "not clear", "could not", "couldn't", "unable", "no clear", "not identif", "cannot", "can't", "do not provide", "does not provide", "no information", "not provide"],
+  "must_include_any": [
+    "unclear",
+    "not clear",
+    "could not",
+    "couldn't",
+    "unable",
+    "no clear",
+    "not identif",
+    "cannot",
+    "can't",
+    "do not provide",
+    "does not provide",
+    "no information",
+    "not provide",
+    "no relevant",
+    "relevant information"
+  ],
   "must_not_include": []
 }

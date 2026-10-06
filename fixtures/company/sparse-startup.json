@@ -2,10 +2,32 @@
   "_note": "Tiny startup with almost nothing public. The right answer is short. Nothing about funding, profitability or founding year is stated, so none may appear.",
   "name": "Quillfeather",
   "results": [
-    { "title": "Quillfeather - Home", "link": "https://www.quillfeather.com/", "snippet": "Quillfeather makes scheduling software for independent veterinary clinics." },
-    { "title": "Quillfeather | LinkedIn", "link": "https://www.linkedin.com/company/quillfeather", "snippet": "Quillfeather | 11-50 employees | Software Development" },
-    { "title": "Quillfeather launches clinic scheduling tool", "link": "https://www.vetpracticenews.com/quillfeather-launch", "snippet": "Quillfeather, a small startup, launched a scheduling tool aimed at independent veterinary clinics." }
+    {
+      "title": "Quillfeather - Home",
+      "link": "https://www.quillfeather.com/",
+      "snippet": "Quillfeather makes scheduling software for independent veterinary clinics."
+    },
+    {
+      "title": "Quillfeather | LinkedIn",
+      "link": "https://www.linkedin.com/company/quillfeather",
+      "snippet": "Quillfeather | 11-50 employees | Software Development"
+    },
+    {
+      "title": "Quillfeather launches clinic scheduling tool",
+      "link": "https://www.vetpracticenews.com/quillfeather-launch",
+      "snippet": "Quillfeather, a small startup, launched a scheduling tool aimed at independent veterinary clinics."
+    }
   ],
-  "must_include": ["veterinary"],
-  "must_not_include": ["Series", "raised", "funding", "profitable", "revenue", "private"]
+  "must_include": [
+    "veterinary"
+  ],
+  "must_not_include": [
+    "Series",
+    "raised",
+    "funding",
+    "profitable",
+    "revenue",
+    "private"
+  ],
+  "hq_empty": true
 }
