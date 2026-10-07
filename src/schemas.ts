@@ -59,6 +59,11 @@ export const normalized = z.object({
   /** ISO 8601, or null if unparseable */
   orig_date: z.string().nullable(),
   cleaned_body: z.string(),
+  /** what the operator typed above the "Forwarded message" divider (their own
+   *  context for the email: a job link, pay range...). Kept apart from
+   *  `cleaned_body` on purpose: the extraction prompt never sees it, so it
+   *  can't change what the model extracts from the email itself. */
+  operator_note: z.string().default(''),
   /** true when no "Forwarded message" block was found and envelope headers were used */
   unwrap_fallback: z.boolean(),
   /** true when the forward's From: is the operator's own address (they forwarded

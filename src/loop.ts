@@ -1,7 +1,7 @@
 /**
  * One poll cycle: for every outstanding Gmail message -
  *   claim (label processing) -> clean -> extract -> (describe new companies)
- *   -> submit -> (disambiguate) -> digest reply -> label processed
+ *   -> (sort the operator's note) -> submit -> (disambiguate) -> digest reply -> label processed
  *
  * Failure handling:
  *  - model can't produce valid JSON  -> label `error` (operator strips it to retry)
@@ -15,6 +15,7 @@ import { writeDebugLog } from './debuglog.js'
 import type { ModelConfig } from './model.js'
 import type { Normalized } from './schemas.js'
 import { addCompanyNotes, type CompanyNotesDeps, type OutgoingExtraction } from './companyNotes.js'
+import { addOperatorNote } from './operatorNote.js'
 import {
   GmailAuthError,
   getMessage,
@@ -94,7 +95,9 @@ export async function runCycle(c: LoopConfig): Promise<{ processed: number; erro
         continue
       }
       const ex = outcome.extraction
-      const outgoing = c.companyNotes ? await addCompanyNotes(ex, c.companyNotes) : ex
+      const withCompanies = c.companyNotes ? await addCompanyNotes(ex, c.companyNotes) : ex
+      // the note typed above the forward (a local model call, and only when there is a note)
+      const outgoing = await addOperatorNote(withCompanies, n.operator_note, c.model)
       const body = buildBody(id, n, outgoing)
 
       if (c.dryRun) {

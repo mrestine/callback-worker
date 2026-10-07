@@ -1,0 +1,14 @@
+{
+  "_note": "Fields plus thoughts that must end up in notes.",
+  "note": "https://jobs.example/halvorsen/301 pays 130-150k. ask about equity and the on-call rotation",
+  "jd_url": "https://jobs.example/halvorsen/301",
+  "salary_includes": [
+    "130",
+    "150"
+  ],
+  "remote": null,
+  "notes_includes": [
+    "equity",
+    "on-call"
+  ]
+}

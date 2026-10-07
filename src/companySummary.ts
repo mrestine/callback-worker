@@ -65,10 +65,10 @@ export function renderSearchResults(name: string, results: SearchResult[], conte
   return `Company: ${name}${ctx}\n\nSearch results:\n${lines.join('\n')}`
 }
 
-const NUMBER = /\d+(?:[.,]\d+)*/g
+export const NUMBER = /\d+(?:[.,]\d+)*/g
 
 /** `num` as a whole number: "2019" must not match inside "20190" or "12019". */
-function appearsIn(haystack: string, num: string): boolean {
+export function appearsIn(haystack: string, num: string): boolean {
   return new RegExp(`(?<!\\d)${num.replace(/\./g, '\\.')}(?!\\d)`).test(haystack)
 }
 

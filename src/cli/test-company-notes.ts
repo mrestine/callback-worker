@@ -358,6 +358,13 @@ async function scenarioDigest() {
   check('line breaks in the description are collapsed onto one line', !one.body.includes('anvils.\n'), one.body)
   check('the rest of the digest is intact (review link still there)', one.body.includes('Review: https://callback.example/review/7'))
 
+  const withOp = renderDigest('Thanks for applying', resp, withNotes({ operator_note: { jd_url: 'https://jobs.example/1', salary_range: '150-170k', remote: 'hybrid', notes: 'ask about equity' } }), 's')
+  check('what the worker took from the operator note is listed', ['From your note:', 'job link: https://jobs.example/1', 'pay:      150-170k', 'work:     hybrid', 'notes:    ask about equity'].every((l) => withOp.body.includes(l)), withOp.body)
+  const partialOp = renderDigest('Thanks for applying', resp, withNotes({ operator_note: { salary_range: '90-100k' } }), 's')
+  check('only the parts that were found are listed', partialOp.body.includes('pay:      90-100k') && !partialOp.body.includes('job link') && !partialOp.body.includes('work:'), partialOp.body)
+  const noOp = renderDigest('Thanks for applying', resp, extraction(), 's')
+  check('no operator note -> no section', !noOp.body.includes('From your note'), noOp.body)
+
   const none = renderDigest('Thanks for applying', resp, extraction(), 's')
   check('no notes -> no notes line at all', !none.body.includes('notes:'), none.body)
 

@@ -4,6 +4,7 @@ import { normalized } from './schemas.js'
 import type { Normalized } from './schemas.js'
 
 const MAX_BODY = 4000
+const MAX_NOTE = 2000
 
 const FWD_MARKERS = [
   /-{3,}\s*Forwarded message\s*-{3,}/i,
@@ -59,7 +60,7 @@ export function threadKey(email: string, subject: string): string {
 }
 
 /** First "Forwarded message" block: parse its reproduced headers, return the body after them. */
-function unwrapForward(body: string): { headers: FwdHeaders; body: string } | null {
+function unwrapForward(body: string): { headers: FwdHeaders; body: string; before: string } | null {
   let at = -1
   let len = 0
   for (const re of FWD_MARKERS) {
@@ -96,7 +97,7 @@ function unwrapForward(body: string): { headers: FwdHeaders; body: string } | nu
       break // junk before any recognised header
     }
   }
-  return { headers, body: lines.slice(i).join('\n').trim() }
+  return { headers, body: lines.slice(i).join('\n').trim(), before: body.slice(0, at) }
 }
 
 /** Google Calendar renders subjects as "Invitation: <title> @ <time> (TZ) (recipient@x)". */
@@ -191,6 +192,12 @@ export async function clean(raw: Buffer | string): Promise<Normalized> {
   body = stripSignature(body)
   body = body.replace(/\n{3,}/g, '\n\n').trim().slice(0, MAX_BODY)
 
+  // Whatever the operator typed above the forward divider. Their mail client's
+  // signature (cut at "-- ") is not part of it.
+  const operatorNote = fwd
+    ? stripSignature(fwd.before).replace(/\n{3,}/g, '\n\n').trim().slice(0, MAX_NOTE)
+    : ''
+
   return normalized.parse({
     source_message_id: parsed.messageId ?? '',
     thread_key: threadKey(origFrom.email, origSubject),
@@ -199,6 +206,7 @@ export async function clean(raw: Buffer | string): Promise<Normalized> {
     orig_to: origTo,
     orig_date: origDate,
     cleaned_body: body,
+    operator_note: operatorNote,
     unwrap_fallback: fwd === null,
     self_authored: selfAuthored,
     envelope_from: envelopeFrom,

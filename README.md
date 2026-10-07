@@ -69,6 +69,8 @@ evals call the real local model; the test needs no model and no network.
 npm run eval                  # extraction: fixtures/sample/*.eml vs *.expected.json
 npm run eval:company          # company summary: canned search results in fixtures/company
 npm run test:company-notes    # the new-company step's logic, offline (stubbed fetch)
+npm run eval:note             # operator note: fixtures/note, what the model picks out of a note
+npm run test:operator-note    # operator note: capture, guards and leftover notes, offline
 npm run typecheck
 ```
 
@@ -88,6 +90,13 @@ npm run eval:company -- fixtures/company --model llama3.2:3b
   description: non-empty, at most 3 sentences, no buzzwords, no number that isn't
   in the sources, plus per-fixture `must_include` / `must_not_include`. No Serper
   calls, no cost.
+- **`eval:note`** gives the operator-note model call real-looking notes (a bare
+  link and range, labeled lines, a recruiter's profile link next to the job
+  link, a number that is not pay...) and checks the fields it picks and what is
+  left over for the notes. Fixtures are `fixtures/note/*.json`.
+- **`test:operator-note`** covers the parts of that step that need no model:
+  capturing the note, the checks on what the model picked, and the leftover
+  notes.
 - **`test:company-notes`** covers the plumbing around the summarizer: which
   companies get a lookup, failure handling, the callback lookup client, the
   two-query search merge, and the digest reply.
@@ -209,11 +218,32 @@ Try it by hand with `npm run lookup-company -- "Name" --summarize`
 (`--context "applying for a ... role"` helps with common names). The checks
 for this step are under [Evals and tests](#evals-and-tests).
 
+### Context you add above the forward
+
+Anything you type above the "Forwarded message" divider is yours, not the
+sender's. `clean.ts` keeps it apart from the email (the extraction prompt never
+sees it) and, only when there is a note, one small model call sorts it into the
+application fields: the job posting link (`jd_url`), the pay range
+(`salary_range`, a string, as you wrote it) and `remote` / `hybrid` / `onsite`.
+No labels are needed; a bare link is taken to be the posting. Everything else in
+the note stays as the application's notes, as written: code builds that by
+taking the picked values (and the word that introduced them, like "JD:" or
+"pays") out of the note, so the model never rewrites your words.
+
+Each pick is checked against the note: a link must appear in it, every number in
+the pay range must, and the work mode needs a matching word. Something that does
+not check out is dropped and stays in the notes. If the model call fails, the
+whole note becomes the notes. The fields go to callback as
+`extracted.operator_note` and fill in the new application the email creates (the
+first one, if the email covers several); the digest reply lists what was found
+under "From your note". Try it: `npm run eval:note`.
+
 ### Failure modes
 
 | what breaks | what happens |
 |---|---|
 | model returns invalid JSON | message → `callback/error`; strip the label to retry |
 | callback unreachable | message stays in `callback/processing`; retried next poll |
+| the note step's model call fails | the email is submitted anyway and your whole note becomes the application's notes |
 | company lookup, search or summary fails | the email is submitted anyway, without a description; the step never blocks a submission |
 | Gmail refresh token dead | loop logs `FATAL` and idles; re-run `gmail:auth`, restart. Set `HEALTHCHECK_URL` so a check service alerts you out-of-band. |

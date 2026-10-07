@@ -25,8 +25,19 @@ type Opportunity = Extraction['additional_opportunities'][number]
 
 export type OutgoingCompany = Company & { notes?: string; hq_location?: string }
 
+/** What the operator typed above the forwarded email, sorted into the
+ *  application fields callback has (see operatorNote.ts). */
+export interface OperatorDetails {
+  jd_url?: string
+  salary_range?: string
+  remote?: 'remote' | 'hybrid' | 'onsite'
+  /** whatever is left of the note once the fields above are taken out of it */
+  notes?: string
+}
+
 /** What is POSTed to callback: an Extraction whose companies may carry notes. */
 export type OutgoingExtraction = Omit<Extraction, 'hiring_company' | 'additional_opportunities'> & {
+  operator_note?: OperatorDetails
   hiring_company: OutgoingCompany
   additional_opportunities: (Omit<Opportunity, 'hiring_company'> & { hiring_company: OutgoingCompany })[]
 }

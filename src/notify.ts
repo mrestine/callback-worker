@@ -85,6 +85,17 @@ export function renderDigest(
   }
   L.push('')
 
+  // what the worker made of the note typed above the forward
+  const on = ex.operator_note
+  if (on) {
+    L.push('From your note:')
+    if (on.jd_url) L.push(`  • job link: ${on.jd_url}`)
+    if (on.salary_range) L.push(`  • pay:      ${oneLine(on.salary_range)}`)
+    if (on.remote) L.push(`  • work:     ${on.remote}`)
+    if (on.notes) L.push(`  • notes:    ${oneLine(on.notes)}`)
+    L.push('')
+  }
+
   const ops = (resp.proposal ?? []).filter((o) => o.decision !== 'skip')
   if (ops.length) {
     L.push('Proposed changes:')
