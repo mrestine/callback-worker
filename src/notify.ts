@@ -30,6 +30,9 @@ function describeOp(op: ProposalOp): string {
     case 'link_company':
     case 'link_application':
     case 'link_contact': {
+      if (op.prefer === 'create' && op.op === 'link_application') {
+        return `create application “${a.role_title ?? '?'}” (${a.status ?? 'applied'}), or pick an existing one on the review page`
+      }
       const pick = op.match?.candidates.find((c) => c.id === op.match?.chosen)
       return pick ? `${OP_VERB[op.op]} → ${pick.label}` : `${OP_VERB[op.op]} (needs a pick)`
     }

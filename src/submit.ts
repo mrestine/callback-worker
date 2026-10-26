@@ -46,6 +46,8 @@ export interface ProposalOp {
   match?: { candidates: { id: number; label: string; score: number }[]; chosen: number | null }
   decision: 'accept' | 'skip'
   reason?: string
+  /** callback would rather create a new row than link; see callback's ProposalOp */
+  prefer?: 'create'
 }
 
 export interface InboundResponse {

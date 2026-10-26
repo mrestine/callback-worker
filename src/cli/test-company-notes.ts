@@ -358,6 +358,9 @@ async function scenarioDigest() {
   check('line breaks in the description are collapsed onto one line', !one.body.includes('anvils.\n'), one.body)
   check('the rest of the digest is intact (review link still there)', one.body.includes('Review: https://callback.example/review/7'))
 
+  const proposal = [{ id: 'a1', op: 'link_application', decision: 'accept' as const, prefer: 'create' as const, args: { role_title: 'Staff Engineer', status: 'applied' }, match: { candidates: [{ id: 5, label: 'Acme - Senior Engineer', score: 0.3 }], chosen: null } }]
+  const preferring = renderDigest('Thanks for applying', { ...resp, proposal }, extraction(), 's')
+  check('a link callback would rather create is described as a new application', preferring.body.includes('create application “Staff Engineer” (applied)') && !preferring.body.includes('needs a pick'), preferring.body)
   const withOp = renderDigest('Thanks for applying', resp, withNotes({ operator_note: { jd_url: 'https://jobs.example/1', salary_range: '150-170k', remote: 'hybrid', notes: 'ask about equity' } }), 's')
   check('what the worker took from the operator note is listed', ['From your note:', 'job link: https://jobs.example/1', 'pay:      150-170k', 'work:     hybrid', 'notes:    ask about equity'].every((l) => withOp.body.includes(l)), withOp.body)
   const partialOp = renderDigest('Thanks for applying', resp, withNotes({ operator_note: { salary_range: '90-100k' } }), 's')
