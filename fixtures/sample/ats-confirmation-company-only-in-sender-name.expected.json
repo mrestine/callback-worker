@@ -1,0 +1,30 @@
+{
+  "_note": "KNOWN GAP (2026-10-27), expected to FAIL with qwen2.5:7b-instruct. Real case, company renamed to Tomma. A Lever confirmation whose body never names the company: the only clues are the sender display name ('Tomma', on a shared no-reply@hire.lever.co address, so sender.org is null) and the Lever slug in the operator's note. The model returned hiring_company {name: null, withheld: true}. withheld is meant only for an employer hidden on purpose, so callback proposed no company or application ops and the review page offered nothing to create or pick. guardMissingHiringCompany cannot help because sender.org is null. Deliberately left unfixed (no extra guard; the fix, if needed, is a prompt line or a bigger model - try an 8b/9b first). This is the ideal output.",
+  "job_related": true,
+  "email_kind": "application_confirmation",
+  "sender": {
+    "name": "Tomma",
+    "email": "no-reply@hire.lever.co",
+    "org": null,
+    "is_agency_recruiter": false,
+    "kind": "recruiter",
+    "confidence": 0.9
+  },
+  "hiring_company": {
+    "name": "Tomma",
+    "withheld": false,
+    "confidence": 0.8
+  },
+  "role": {
+    "title": "Team Lead, Software Engineering",
+    "confidence": 0.95
+  },
+  "event": {
+    "type": "email",
+    "subtype": null,
+    "occurred_at": null,
+    "summary": "Tomma confirmed it received the application for Team Lead, Software Engineering."
+  },
+  "status_signal": null,
+  "notes": "Application receipt confirmation."
+}
