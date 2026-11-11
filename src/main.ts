@@ -89,8 +89,13 @@ async function main(): Promise<void> {
   )
 
   let fatal = false
+  // A cycle can outlast the poll interval (search + model calls). A second one
+  // would find the first's message still in `processing`, which its recovery
+  // query reads as stranded, and run it again.
+  let running = false
   async function tick(): Promise<void> {
-    if (fatal) return
+    if (fatal || running) return
+    running = true
     try {
       const { processed, errored } = await runCycle(cfg)
       if (processed || errored) console.log(`[loop] cycle done: ${processed} ok, ${errored} errored`)
@@ -106,6 +111,8 @@ async function main(): Promise<void> {
         return
       }
       console.error(`[loop] cycle threw: ${(err as Error).message}`)
+    } finally {
+      running = false
     }
   }
 
